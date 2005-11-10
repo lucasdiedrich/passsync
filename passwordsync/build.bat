@@ -39,101 +39,149 @@
 
 @echo off
 
-pushd
-
-rem Convert %OBJEST% to absolute.
-call :relative %OBJDEST%
-
 if [%BUILD_DEBUG%] == [optimize] (
-    set LIBROOT=..\..\..\..\dist\WINNT5.0_OPT.OBJ
+    set FLAVOR=WINNT5.0_OPT.OBJ
 ) else (
-    set LIBROOT=..\..\..\..\dist\WINNT5.0_DBG.OBJ
+    set FLAVOR=WINNT5.0_DBG.OBJ
 )
 
-echo %LIBROOT%
+rem ======== Set Various Build Directories ========
+set OBJDEST=..\built\%FLAVOR%
+rem   ------ Convert OBJEST to absolute ------
+call :relative %OBJDEST% OBJDEST
+
+set LIBROOT=..\components\%FLAVOR%
+rem   ------ Convert LIBROOT to absolute ------
+call :relative %LIBROOT% LIBROOT
+mkdir %LIBROOT%
+
+set PKGDIR=%OBJDEST%\package\passsync
+mkdir %PKGDIR%
+
+set DISTDIR=..\dist\%FLAVOR%
+rem   ------ Convert DISTDIR to absolute ------
+call :relative %DISTDIR% DISTDIR
+mkdir %DISTDIR%
 
 set WXSDIR=%CD%\wix
 
-set INCLUDE=%INCLUDE%;%CD%\%LIBROOT%\ldapsdk\include;%CD%\%LIBROOT%\nspr\include;%CD%\%LIBROOT%\nss\include
-set LIB=%LIB%;%CD%\%LIBROOT%\ldapsdk\lib;%CD%\%LIBROOT%\nspr\lib;%CD%\%LIBROOT%\nss\lib
-set PATH=%PATH%;%CD%\%LIBROOT%\wix
+rem ======== Fetch Components ========
+if [%INTERNAL_BUILD%] == [1] (
+    set COMPONENT_URL=http://ftp-rel.sfbay.redhat.com/share/builds/components
+) else (
+    set COMPONENT_URL=http://directory.fedora.redhat.com/built/components
+)
+
+rem   ------ NSPR ------
+set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.6
+if NOT EXIST %LIBROOT%\nspr (
+    pushd %CD%
+    mkdir %LIBROOT%\nspr
+    cd %LIBROOT%\nspr
+    echo %NSPR_LOCATION%/%FLAVOR% > version.txt
+    wget --no-directories %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar
+    wget --no-directories -Pinclude %NSPR_LOCATION%/%FLAVOR%/mdheader.jar
+    unzip -q mdbinary.jar
+    cd include
+    unzip -q mdheader.jar
+    popd
+)
+
+rem   ------ NSS ------
+set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_10_2_RTM
+if NOT EXIST %LIBROOT%\nss (
+    pushd %CD%
+    mkdir %LIBROOT%\nss
+    cd %LIBROOT%\nss
+    echo %NSS_LOCATION%/%FLAVOR% > version.txt
+    wget --no-directories %NSS_LOCATION%/%FLAVOR%/mdbinary.jar
+    wget --no-directories -Pinclude %NSS_LOCATION%/xpheader.jar
+    unzip -q mdbinary.jar
+    cd include
+    unzip -q xpheader.jar
+    popd
+)
+
+rem   ------ LDAPSDK ------
+set LDAPSDK_LOCATION=%COMPONENT_URL%/ldapsdk50/v5.16
+if NOT EXIST %LIBROOT%\ldapsdk (
+    pushd %CD%
+    mkdir %LIBROOT%\ldapsdk
+    cd %LIBROOT%\ldapsdk
+    echo %LDAPSDK_LOCATION%/%FLAVOR% > version.txt
+    wget --no-directories %LDAPSDK_LOCATION%/%FLAVOR%/ldapcsdk516.zip
+    unzip -q ldapcsdk516.zip
+    popd
+)
 
 set OK=0
 
+pushd %CD%
+
+rem ======== Build ========
+rem   ------ Set Build Paths ------
+set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\include;%LIBROOT%\nspr\include;%LIBROOT%\nss\include
+set LIB=%LIB%;%LIBROOT%\ldapsdk\lib;%LIBROOT%\nspr\lib;%LIBROOT%\nss\lib
+
+rem   ------ PassSync ------
 cd passsync
-echo Entering %CD%
+echo -------- Beginning PassSync Build --------
 
-:BUILD
-nmake passsync.mak
+nmake /f passsync.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
-copy /Y %OBJDEST%\passsync\passsync.exe %OBJDEST%\
-set /a OK=%OK% + %ERRORLEVEL%
+if [%OK%] GTR [1] (
+    echo -------- PassSync Build Failed! --------
+    goto :END
+) else (
+    echo -------- PassSync Build Successful! --------
+)
 
+rem   ------ Passhook ------
 cd ..\passhook
-echo Entering %CD%
+echo -------- Beginning Passhook Build --------
 
-nmake passhook.mak
+nmake /f passhook.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
-copy /Y %OBJDEST%\passhook\passhook.dll %OBJDEST%\
+if [%OK%] GTR [1] (
+    echo -------- Passhook Build Failed! --------
+    goto :END
+) else (
+    echo -------- Passhook Build Successful! --------
+)
+
+rem ======== Package ========
+cd ..
+echo -------- Beginning Packaging --------
+
+nmake /f package.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
-:PKG
-
-if EXIST ..\%LIBROOT%\ldapsdk\lib\nsldap32v50.dll (
-    copy /Y ..\%LIBROOT%\ldapsdk\lib\nsldap32v50.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\ldapsdk\lib\nsldapssl32v50.dll (
-    copy /Y ..\%LIBROOT%\ldapsdk\lib\nsldapssl32v50.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\ldapsdk\lib\nsldappr32v50.dll (
-    copy /Y ..\%LIBROOT%\ldapsdk\lib\nsldappr32v50.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nspr\lib\libnspr4.dll (
-    copy /Y ..\%LIBROOT%\nspr\lib\libnspr4.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nspr\lib\libplds4.dll (
-    copy /Y ..\%LIBROOT%\nspr\lib\libplds4.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nspr\lib\libplc4.dll (
-    copy /Y ..\%LIBROOT%\nspr\lib\libplc4.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nss\lib\nss3.dll (
-    copy /Y ..\%LIBROOT%\nss\lib\nss3.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nss\lib\ssl3.dll (
-    copy /Y ..\%LIBROOT%\nss\lib\ssl3.dll %OBJDEST%\ 
-)
-if EXIST ..\%LIBROOT%\nss\lib\softokn3.dll (
-    copy /Y ..\%LIBROOT%\nss\lib\softokn3.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nss\lib\smime3.dll (
-    copy /Y ..\%LIBROOT%\nss\lib\smime3.dll %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nss\bin\certutil.exe (
-    copy /Y ..\%LIBROOT%\nss\bin\certutil.exe %OBJDEST%\
-)
-if EXIST ..\%LIBROOT%\nss\bin\pk12util.exe (
-    copy /Y ..\%LIBROOT%\nss\bin\pk12util.exe %OBJDEST%\
+if EXIST %PKGDIR%\PassSync.msi (
+    copy /Y %PKGDIR%\PassSync.msi %DISTDIR%
+    set /a OK=%OK% + %ERRORLEVEL%
 )
 
-xcopy /E /Y /I %WXSDIR%\Binary %OBJDEST%\Binary 
-
-cd %OBJDEST%
-echo Entering %CD%
-
-candle %WXSDIR%\PassSync.wxs
-set /a OK=%OK% + %ERRORLEVEL%
-
-light PassSync.wixobj
-set /a OK=%OK% + %ERRORLEVEL%
-
-:relative
-set OBJDEST=%~f1
-goto :EOF
+if [%OK%] GTR [1] (
+    echo -------- Packaging Failed! --------
+    goto :END
+) else (
+    echo -------- Packaging Successful! --------
+)
 
 :END
 popd
-if %OK% GTR 1 (set OK=1)
+if [%OK%] GTR [1] (
+    echo -------- Build Failed! --------
+    set OK=1
+) else (
+    echo -------- Build Successful! --------
+)
 exit %OK%
+
+:relative
+rem ======== Converts relative path to absolute path ========
+rem   ------ %1 is the path, %2 is the variable to be set ------
+set %2=%~f1
+goto :EOF

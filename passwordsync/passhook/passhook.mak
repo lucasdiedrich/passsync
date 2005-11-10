@@ -36,7 +36,8 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 #
-# Microsoft Developer Studio Generated NMAKE File, Based on passhook.dsp
+# nmake Makefile for passhook.dll
+#
 !IF "$(CFG)" == ""
 CFG=passhook - Win32 Debug
 !MESSAGE No configuration specified. Defaulting to passhook - Win32 Debug.
@@ -204,7 +205,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=nss3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\passhook.pdb" /debug /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" /pdbtype:sept 
+LINK32_FLAGS=nss3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\passhook.pdb" /debug /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
 DEF_FILE= \
 	".\passhook.def"
 LINK32_OBJS= \
