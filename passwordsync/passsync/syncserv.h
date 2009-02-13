@@ -64,7 +64,6 @@ public:
 	void Run();
 
 	int SyncPasswords();
-
 private:
 	int Connect(LDAP** connection, char* dn, char* auth);
 	int Disconnect(LDAP** connection);
@@ -72,7 +71,7 @@ private:
 	char* GetDN();
 	int ModifyPassword(char* dn, char* password);
 
-	bool FutureOccurrence(PASS_INFO_LIST_ITERATOR startingPassInfo);
+	bool FutureOccurrence(PASS_INFO_LIST_ITERATOR &startingPassInfo);
 	bool MultipleResults();
 	bool CanBind(char* dn, char* password);
 

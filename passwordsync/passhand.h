@@ -42,6 +42,8 @@
 
 #include <windows.h>
 #include <time.h>
+#include <errno.h>
+#include <stdlib.h>
 #include <strstream>
 #include <fstream>
 #include <list>

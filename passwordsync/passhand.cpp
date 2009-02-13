@@ -133,9 +133,16 @@ int loadSet(PASS_INFO_LIST* passInfoList, char* filename)
 	int cipherTextLen = 0;
 	int resultTextLen = 0;
 	int pairCount = 0;
+	errno_t err = 0;
 
 	// Read in cipher text from file
 	inFile.open(filename, ios::in | ios::binary);
+	_get_errno(&err);
+	if (err == ENOENT) { // file does not exist - ok
+		result = 1;
+		goto exit;
+	}
+
 	if(!inFile.is_open())
 	{
 		result = -1;

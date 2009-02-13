@@ -133,7 +133,7 @@ PassSyncService::PassSyncService(const TCHAR *serviceName) : CNTService(serviceN
 	if(outLog.is_open())
 	{
 		timeStamp(&outLog);
-		outLog << "PassSync service started" << endl;
+		outLog << "PassSync service initialized" << endl;
 	}
 
 	PK11_SetPasswordFunc(passwdcb);
@@ -177,6 +177,12 @@ void PassSyncService::OnShutdown()
 // ****************************************************************
 void PassSyncService::Run()
 {
+	if(outLog.is_open())
+	{
+		timeStamp(&outLog);
+		outLog << "PassSync service running" << endl;
+	}
+
 	isRunning = true;
 
 	// Initialize NSS
@@ -231,11 +237,12 @@ void PassSyncService::Run()
 
 	if(passInfoList.size() > 0)
 	{
+		int result = 0;
 		// Get mutex for passhook.dat
 		WaitForSingleObject(passhookMutexHandle, INFINITE);
 
 		// Need to loadSet here so we don't overwrite entries that passhook recently added
-		if(loadSet(&passInfoList, dataFilename) == 0)
+		if((result = loadSet(&passInfoList, dataFilename)) == 0)
 		{
 			if(saveSet(&passInfoList, dataFilename) == 0)
 			{
@@ -250,6 +257,9 @@ void PassSyncService::Run()
 				timeStamp(&outLog);
 				outLog << "Failed to save entries to data file" << endl;
 			}
+		} else if (result == 1) {
+			timeStamp(&outLog);
+			outLog << "No entries yet" << endl;
 		} else {
 			timeStamp(&outLog);
 			outLog << "Failed to load entries from file" << endl;
@@ -280,7 +290,7 @@ int PassSyncService::SyncPasswords()
 	// Get mutex for passhook.dat
 	WaitForSingleObject(passhookMutexHandle, INFINITE);
 
-	if(loadSet(&passInfoList, dataFilename) == 0)
+	if((result = loadSet(&passInfoList, dataFilename)) == 0)
 	{
 		if((passInfoList.size() - tempSize) > 0)
 		{
@@ -304,6 +314,11 @@ int PassSyncService::SyncPasswords()
 				outLog << "Failed to clear contents of data file" << endl;
 			}
 		}
+	}
+	else if (result == 1)
+	{
+		timeStamp(&outLog);
+		outLog << "No entries yet" << endl;
 	}
 	else
 	{
@@ -580,12 +595,12 @@ int PassSyncService::ModifyPassword(char* dn, char* password)
 // ****************************************************************
 // PassSyncService::FutureOccurrence
 // ****************************************************************
-bool PassSyncService::FutureOccurrence(PASS_INFO_LIST_ITERATOR startingPassInfo)
+bool PassSyncService::FutureOccurrence(PASS_INFO_LIST_ITERATOR &startingPassInfo)
 {
 	bool result = false;
 	PASS_INFO_LIST_ITERATOR currentPassInfo;
 
-	if((startingPassInfo != NULL) && (startingPassInfo != passInfoList.end()))
+	if((startingPassInfo._Ptr) && (startingPassInfo != passInfoList.end()))
 	{
 		currentPassInfo = startingPassInfo;
 		currentPassInfo++;
