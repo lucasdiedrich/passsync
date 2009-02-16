@@ -196,34 +196,40 @@ BOOL CNTService::IsInstalled()
 
 BOOL CNTService::Install()
 {
-    // Open the Service Control Manager
-    SC_HANDLE hSCM = ::OpenSCManager(NULL, // local machine
-                                     NULL, // ServicesActive database
-                                     SC_MANAGER_ALL_ACCESS); // full access
-    if (!hSCM) return FALSE;
-
     // Get the executable file path
     TCHAR szFilePath[_MAX_PATH];
     ::GetModuleFileName(NULL, szFilePath, sizeof(szFilePath)/sizeof(*szFilePath));
 
-    // Create the service
-    SC_HANDLE hService = ::CreateService(hSCM,
-                                         m_szServiceName,
-                                         m_szServiceName,
-                                         SERVICE_ALL_ACCESS,
-                                         SERVICE_WIN32_OWN_PROCESS,
-                                         SERVICE_DEMAND_START,        // start condition
-                                         SERVICE_ERROR_NORMAL,
-                                         szFilePath,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         NULL,
-                                         NULL);
-    if (!hService) {
-        ::CloseServiceHandle(hSCM);
-        return FALSE;
-    }
+	// install if not already installed
+	if (!IsInstalled()) {
+		// Open the Service Control Manager
+		SC_HANDLE hSCM = ::OpenSCManager(NULL, // local machine
+			NULL, // ServicesActive database
+			SC_MANAGER_ALL_ACCESS); // full access
+		if (!hSCM) return FALSE;
+
+		// Create the service
+		SC_HANDLE hService = ::CreateService(hSCM,
+			m_szServiceName,
+			m_szServiceName,
+			SERVICE_ALL_ACCESS,
+			SERVICE_WIN32_OWN_PROCESS,
+			SERVICE_DEMAND_START,        // start condition
+			SERVICE_ERROR_NORMAL,
+			szFilePath,
+			NULL,
+			NULL,
+			NULL,
+			NULL,
+			NULL);
+		if (!hService) {
+			::CloseServiceHandle(hSCM);
+			return FALSE;
+		}
+		// clean up
+		::CloseServiceHandle(hService);
+		::CloseServiceHandle(hSCM);
+	}
 
     // make registry entries to support logging messages
     // Add the source name as a subkey under the Application
@@ -232,12 +238,16 @@ BOOL CNTService::Install()
     HKEY hKey = NULL;
     _tcscpy(szKey, _T("SYSTEM\\CurrentControlSet\\Services\\EventLog\\Application\\"));
     _tcscat(szKey, GetEventName());
-    if (::RegCreateKey(HKEY_LOCAL_MACHINE, szKey, &hKey) != ERROR_SUCCESS) {
-        ::CloseServiceHandle(hService);
-        ::CloseServiceHandle(hSCM);
-        return FALSE;
-    }
-
+	// see if key exists
+	int result = ::RegOpenKeyEx(HKEY_LOCAL_MACHINE, szKey, 0, KEY_ALL_ACCESS, &hKey);
+	if (result == ERROR_FILE_NOT_FOUND) { // create it
+	    if (::RegCreateKey(HKEY_LOCAL_MACHINE, szKey, &hKey) != ERROR_SUCCESS) {
+		    return FALSE;
+	    }
+	} else if (result != ERROR_SUCCESS) {
+		// punt
+		return FALSE;
+	}
     // Add the Event ID message-file name to the 'EventMessageFile' subkey.
     ::RegSetValueEx(hKey,
                     _T("EventMessageFile"),
@@ -258,9 +268,6 @@ BOOL CNTService::Install()
 
     LogEvent(EVENTLOG_INFORMATION_TYPE, EVMSG_INSTALLED, m_szServiceName);
 
-    // tidy up
-    ::CloseServiceHandle(hService);
-    ::CloseServiceHandle(hSCM);
     return TRUE;
 }
 

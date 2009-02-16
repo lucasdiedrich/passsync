@@ -56,6 +56,8 @@ CFG=passsync - Win32 Debug
 !MESSAGE "passsync - Win32 Debug" (based on "Win32 (x86) Console Application")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
+!ELSE
+!MESSAGE Build flavor is $(CFG)
 !ENDIF 
 
 !IF "$(OS)" == "Windows_NT"
@@ -126,7 +128,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\passsync.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\passsync.pdb" /machine:I386 /out:"$(OUTDIR)\passsync.exe" 
+LINK32_FLAGS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib nsldappr32v60.lib nsldapssl32v60.lib nsldap32v60.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\passsync.pdb" /machine:I386 /out:"$(OUTDIR)\passsync.exe" dssynchmsg.res
 LINK32_OBJS= \
 	"$(INTDIR)\ntservice.obj" \
 	"$(INTDIR)\passhand.obj" \
@@ -135,8 +137,7 @@ LINK32_OBJS= \
 	"$(INTDIR)\syncserv.obj"
 
 "$(OUTDIR)\passsync.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
+  $(LINK32) @<< $(LINK32_FLAGS) $(LINK32_OBJS)
 <<
 
 !ELSEIF  "$(CFG)" == "passsync - Win32 Debug"
@@ -204,7 +205,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\passsync.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=nss3.lib libplc4.lib libnspr4.lib nsldappr32v50.lib nsldapssl32v50.lib nsldap32v50.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\passsync.pdb" /debug /machine:I386 /out:"$(OUTDIR)\passsync.exe" 
+LINK32_FLAGS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib nsldappr32v60.lib nsldapssl32v60.lib nsldap32v60.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\passsync.pdb" /debug /machine:I386 /out:"$(OUTDIR)\passsync.exe" dssynchmsg.res
 LINK32_OBJS= \
 	"$(INTDIR)\ntservice.obj" \
 	"$(INTDIR)\passhand.obj" \

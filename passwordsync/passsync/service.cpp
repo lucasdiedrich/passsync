@@ -245,6 +245,12 @@ static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
 				break;
 		}
 	}
+
+	if ((result == OPT_START) && (argc == 1)) {
+		// started from SCM - make sure all installation
+		// stuff is done, like registering our event messages
+		pSynch->Install();
+	}
 	return result;
 }
 
