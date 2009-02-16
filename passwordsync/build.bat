@@ -39,10 +39,20 @@
 
 @echo off
 
+rem set DOWNLOAD=echo DOWNLOAD
+set DOWNLOAD="c:\program files\support tools\bitsadmin" /wrap /transfer passsyncbuild /download /priority normal
+set UNZIP=cscript //nologo "%CD%\unzip.vbs"
+@rem set DOWNLOAD=wget --no-directories
+@rem set UNZIP=unzip -q
+
 if [%BUILD_DEBUG%] == [optimize] (
     set FLAVOR=WINNT5.0_OPT.OBJ
+    set CFG1="passsync - Win32 Release"
+    set CFG2="passhook - Win32 Release"
 ) else (
     set FLAVOR=WINNT5.0_DBG.OBJ
+    set CFG1="passsync - Win32 Debug"
+    set CFG2="passhook - Win32 Debug"
 )
 
 rem ======== Set Various Build Directories ========
@@ -53,70 +63,91 @@ call :relative %OBJDEST% OBJDEST
 set LIBROOT=..\components\%FLAVOR%
 rem   ------ Convert LIBROOT to absolute ------
 call :relative %LIBROOT% LIBROOT
-mkdir %LIBROOT%
+mkdir "%LIBROOT%"
 
 set PKGDIR=%OBJDEST%\package\passsync
-mkdir %PKGDIR%
+mkdir "%PKGDIR%"
 
 set DISTDIR=..\dist\%FLAVOR%
 rem   ------ Convert DISTDIR to absolute ------
 call :relative %DISTDIR% DISTDIR
-mkdir %DISTDIR%
+mkdir "%DISTDIR%"
+
+set WIXVER=2.0.5805.0
+set WIXDIR=..\wix
+rem   ------ Convert WIXDIR to absolute ------
+call :relative %WIXDIR% WIXDIR
 
 set WXSDIR=%CD%\wix
 
 rem ======== Fetch Components ========
 if [%INTERNAL_BUILD%] == [1] (
-    set COMPONENT_URL=http://ftp-rel.sfbay.redhat.com/share/builds/components
+    set COMPONENT_URL=http://tsunami.dsdev.sjc.redhat.com/share/builds/components
+    set COMPONENT_URL2=http://tsunami.dsdev.sjc.redhat.com/share/builds/verification
 ) else (
-    set COMPONENT_URL=http://directory.fedora.redhat.com/built/components
+    set COMPONENT_URL=http://directory.fedoraproject.org/built/components
 )
 
 rem   ------ NSPR ------
-set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.6
-if NOT EXIST %LIBROOT%\nspr (
-    pushd %CD%
-    mkdir %LIBROOT%\nspr
-    cd %LIBROOT%\nspr
+set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.7.3
+if NOT EXIST "%LIBROOT%\nspr" (
+    mkdir "%LIBROOT%\nspr"
+    mkdir "%LIBROOT%\nspr\include"
+    pushd "%LIBROOT%\nspr"
     echo %NSPR_LOCATION%/%FLAVOR% > version.txt
-    wget --no-directories %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar
-    wget --no-directories -Pinclude %NSPR_LOCATION%/%FLAVOR%/mdheader.jar
-    unzip -q mdbinary.jar
+    %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
+    %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
+
+    ren mdbinary.jar mdbinary.zip
+    ren mdheader.jar mdheader.zip
+    %UNZIP% mdbinary.zip
     cd include
-    unzip -q mdheader.jar
+    %UNZIP% ..\mdheader.zip
     popd
 )
 
 rem   ------ NSS ------
-set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_10_2_RTM
-if NOT EXIST %LIBROOT%\nss (
-    pushd %CD%
-    mkdir %LIBROOT%\nss
-    cd %LIBROOT%\nss
+set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_2_RTM
+if NOT EXIST "%LIBROOT%\nss" (
+    mkdir "%LIBROOT%\nss"
+    mkdir "%LIBROOT%\nss\include"
+    pushd "%LIBROOT%\nss"
     echo %NSS_LOCATION%/%FLAVOR% > version.txt
-    wget --no-directories %NSS_LOCATION%/%FLAVOR%/mdbinary.jar
-    wget --no-directories -Pinclude %NSS_LOCATION%/xpheader.jar
-    unzip -q mdbinary.jar
+    %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nss\mdbinary.jar"
+    %DOWNLOAD% %NSS_LOCATION%/include/xpheader.jar "%LIBROOT%\nss\xpheader.jar"
+    ren mdbinary.jar mdbinary.zip
+    ren xpheader.jar xpheader.zip
+    %UNZIP% mdbinary.zip
     cd include
-    unzip -q xpheader.jar
+    %UNZIP% ..\xpheader.zip
     popd
 )
 
 rem   ------ LDAPSDK ------
-set LDAPSDK_LOCATION=%COMPONENT_URL%/ldapsdk50/v5.16
-if NOT EXIST %LIBROOT%\ldapsdk (
-    pushd %CD%
-    mkdir %LIBROOT%\ldapsdk
-    cd %LIBROOT%\ldapsdk
+set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.5/20090128.1
+if NOT EXIST "%LIBROOT%\ldapsdk" (
+    mkdir "%LIBROOT%\ldapsdk"
+    pushd "%LIBROOT%\ldapsdk"
     echo %LDAPSDK_LOCATION%/%FLAVOR% > version.txt
-    wget --no-directories %LDAPSDK_LOCATION%/%FLAVOR%/ldapcsdk516.zip
-    unzip -q ldapcsdk516.zip
+    %DOWNLOAD% %LDAPSDK_LOCATION%/%FLAVOR%/ldapcsdk.zip "%LIBROOT%\ldapsdk\ldapcsdk.zip"
+    %UNZIP% ldapcsdk.zip
+    popd
+)
+
+rem   ------ WIX ------
+set WIX_LOCATION=%COMPONENT_URL%/wix
+if NOT EXIST "%WIXDIR%" (
+    mkdir "%WIXDIR%"
+    pushd "%WIXDIR%"
+    echo %WIX_LOCATION% > version.txt
+    %DOWNLOAD% %WIX_LOCATION%/wix-%WIXVER%.zip "%WIXDIR%\wix-%WIXVER%.zip"
+    %UNZIP% wix-%WIXVER%.zip
     popd
 )
 
 set OK=0
 
-pushd %CD%
+pushd "%CD%"
 
 rem ======== Build ========
 rem   ------ Set Build Paths ------
@@ -127,7 +158,10 @@ rem   ------ PassSync ------
 cd passsync
 echo -------- Beginning PassSync Build --------
 
-nmake /f passsync.mak
+rem nmake CFG=%CFG1% /nologo /d /p /g /f passsync.mak
+rem /d /p /g are debugging flags
+rem /nologo is the shut up flag
+nmake CFG=%CFG1% /nologo /f passsync.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
 if [%OK%] GTR [1] (
@@ -141,7 +175,7 @@ rem   ------ Passhook ------
 cd ..\passhook
 echo -------- Beginning Passhook Build --------
 
-nmake /f passhook.mak
+nmake /nologo CFG=%CFG2% /f passhook.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
 if [%OK%] GTR [1] (
@@ -155,11 +189,11 @@ rem ======== Package ========
 cd ..
 echo -------- Beginning Packaging --------
 
-nmake /f package.mak
+nmake /nologo CFG=%CFG1% /f package.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
-if EXIST %PKGDIR%\PassSync.msi (
-    copy /Y %PKGDIR%\PassSync.msi %DISTDIR%
+if EXIST "%PKGDIR%\PassSync.msi" (
+    copy /Y "%PKGDIR%\PassSync.msi" "%DISTDIR%"
     set /a OK=%OK% + %ERRORLEVEL%
 )
 

@@ -127,7 +127,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\passhook.pdb" /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
+LINK32_FLAGS=nss3.lib nssutil3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\passhook.pdb" /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
 DEF_FILE= \
 	".\passhook.def"
 LINK32_OBJS= \
@@ -205,7 +205,7 @@ BSC32_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc"
 BSC32_SBRS= \
 	
 LINK32=link.exe
-LINK32_FLAGS=nss3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\passhook.pdb" /debug /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
+LINK32_FLAGS=nss3.lib nssutil3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\passhook.pdb" /debug /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
 DEF_FILE= \
 	".\passhook.def"
 LINK32_OBJS= \

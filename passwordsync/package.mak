@@ -38,28 +38,23 @@
 # END COPYRIGHT BLOCK
 #
 # Packaging nmake Makefile for PassSync.msi
+CANDLE=$(WIXDIR)\candle
+LIGHT=$(WIXDIR)\light
 
 ALL : PassSync.msi
 
 LAYOUT :
 	copy /Y "$(OBJDEST)\passsync\passsync.exe" "$(PKGDIR)"
 	copy /Y "$(OBJDEST)\passhook\passhook.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\ldapsdk\lib\nsldap32v50.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\ldapsdk\lib\nsldapssl32v50.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\ldapsdk\lib\nsldappr32v50.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nspr\lib\libnspr4.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nspr\lib\libplds4.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nspr\lib\libplc4.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nss\lib\nss3.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nss\lib\ssl3.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nss\lib\softokn3.dll" "$(PKGDIR)"
-	copy /Y "$(LIBROOT)\nss\lib\smime3.dll" "$(PKGDIR)"
+	copy /Y "$(LIBROOT)\ldapsdk\lib\*.dll" "$(PKGDIR)"
+	copy /Y "$(LIBROOT)\nspr\lib\*.dll" "$(PKGDIR)"
+	copy /Y "$(LIBROOT)\nss\lib\*.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\certutil.exe" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\pk12util.exe" "$(PKGDIR)"
 
 PassSync.msi : LAYOUT
-	mkdir "$(PKGDIR)\Binary"
+	if not exist "$(PKGDIR)\Binary" mkdir "$(PKGDIR)\Binary"
 	copy /Y wix\Binary "$(PKGDIR)\Binary"
 	cd "$(PKGDIR)"
-	candle "$(WXSDIR)\PassSync.wxs"
-	light PassSync.wixobj
+	"$(CANDLE)" "$(WXSDIR)\PassSync.wxs"
+	"$(LIGHT)" PassSync.wixobj

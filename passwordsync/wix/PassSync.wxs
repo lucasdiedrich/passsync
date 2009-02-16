@@ -36,59 +36,64 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 <Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
-  <Product Name='Fedora Directory Password Sync' Id='C1842CD5-4659-4E7C-A53C-37083B0CB59F'
-    Language='1033' Codepage='1252'
-    Version='1.0.2' Manufacturer='Fedora Project'>
+  <Product Name='Fedora Directory Password Sync'
+    Id='D9C09AE2-F504-4875-8C7E-70BF2D791CEB'
+    Language='1033' Codepage='1252' UpgradeCode='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'
+    Version='1.1.0' Manufacturer='Fedora Project'>
 
     <Package Id='????????-????-????-????-????????????' Keywords='Installer'
       Description="Fedora Directory Password Synchronization Installer"
       Manufacturer='Fedora Project'
       InstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
+<!-- this upgrade element is for 1.1.0 and later
+     if we are upgrading the same version that is already installed,
+     we just want to allow the user to modify the configuration
+     if we are upgrading to a newer version, we want to allow the
+     user to modify the configuration, and install the new software
+-->
+    <Upgrade Id='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'>
+      <UpgradeVersion OnlyDetect='no' Property='PATCHFOUND'
+        IncludeMinimum='yes' Minimum='1.0.0' Maximum='1.1.0' IncludeMaximum='no' />
+      <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
+        Minimum='1.1.0' IncludeMinimum='no' />
+    </Upgrade>
+
     <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
     <Property Id='DiskPrompt' Value="Password Sync Installation [1]" />
     <Property Id="HOSTNAME">
       <RegistrySearch Id="HostName" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Host Name" Type="registry" />
+                      Name="Host Name" Type="raw" />
     </Property>
     <Property Id="PORTNUM">
       <RegistrySearch Id="PortNum" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Port Number" Type="registry" />
+                      Name="Port Number" Type="raw" />
     </Property>
     <Property Id="USER">
       <RegistrySearch Id="UserName" Root="HKLM" Key="Software\PasswordSync"
-                      Name="User Name" Type="registry" />
+                      Name="User Name" Type="raw" />
     </Property>
     <Property Id="PASSWORD">
       <RegistrySearch Id="Password" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Password" Type="registry" />
+                      Name="Password" Type="raw" />
     </Property>
     <Property Id="CERTTOKEN">
       <RegistrySearch Id="Certtkn" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Cert Token" Type="registry" />
+                      Name="Cert Token" Type="raw" />
     </Property>
     <Property Id="SRCHBASE">
       <RegistrySearch Id="SrchBase" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Search Base" Type="registry" />
+                      Name="Search Base" Type="raw" />
     </Property>
+
+    <CustomAction Id='AlreadyUpdated' Error='[ProductName] [ProductVersion] is already installed.' />
+    <CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
 
       <Directory Id='SystemFolder' Name='SysDir'>
         <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D'>
           <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' src='passhook.dll' Vital='yes' />
-        </Component>
-
-        <Component Id='NSLDAPLibrary' Guid='E3B9046B-1B9B-4E19-81F3-0A8D14CF72B2'>
-          <File Id='NSLDAP' LongName='nsldap32v50.dll' Name='nsldap.dll' DiskId='1' src='nsldap32v50.dll' Vital='yes' />
-        </Component>
-
-        <Component Id='NSLDAPSSLLibrary' Guid='794345C6-74B8-4917-A2E6-4DC9DCCFECD2'>
-          <File Id='NSLDAPSSL' LongName='nsldapssl32v50.dll' Name='nsldapss.dll' DiskId='1' src='nsldapssl32v50.dll' Vital='yes' />
-        </Component>
-
-        <Component Id='NSLDAPPRLibrary' Guid='D6ABE406-7663-4E27-81F3-482860FD6375'>
-          <File Id='NSLDAPRP' LongName='nsldappr32v50.dll' Name='nsldappr.dll' DiskId='1' src='nsldappr32v50.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5'>
@@ -118,6 +123,23 @@
         <Component Id='NSSsmimeLibrary' Guid='E1030203-0A43-4767-BF5F-C7A51C687040'>
           <File Id='NSSSMIME' LongName='smime3.dll' Name='smime3.dll' DiskId='1' src='smime3.dll' Vital='yes' />
         </Component>
+
+        <Component Id='NSSfreeblLibrary' Guid='405D9E74-1B7C-41e2-A9CC-DC8F0CEA1565'>
+          <File Id='NSSFREEBL' LongName='freebl3.dll' Name='freebl3.dll' DiskId='1' src='freebl3.dll' Vital='yes' />
+        </Component>
+
+        <Component Id='NSSutilLibrary' Guid='2740AA9B-888A-4967-80A5-9CA222582816'>
+          <File Id='NSSUTIL' LongName='nssutil3.dll' Name='nssutil3.dll' DiskId='1' src='nssutil3.dll' Vital='yes' />
+        </Component>
+
+        <Component Id='NSSsqliteLibrary' Guid='C2EE5C29-0588-4ec8-B1AB-324FF878DB7D'>
+          <File Id='NSSSQLITE' LongName='sqlite3.dll' Name='sqlite3.dll' DiskId='1' src='sqlite3.dll' Vital='yes' />
+        </Component>
+
+        <Component Id='NSSdbmLibrary' Guid='F4B8B7FA-11A5-43af-B471-0C71AFC2CAB9'>
+          <File Id='NSSDBM' LongName='nssdbm3.dll' Name='nssdbm3.dll' DiskId='1' src='nssdbm3.dll' Vital='yes' />
+        </Component>
+
       </Directory>
 
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
@@ -161,6 +183,26 @@
               <File Id='NSSPK12UTIL' LongName='pk12util.exe' Name='pk12util.exe' DiskId='1' src='pk12util.exe' Vital='yes' />
             </Component>
 
+            <Component Id='NSSrootcertsLibrary' Guid='783828BA-5B72-4320-92CA-127C42E2179E'>
+              <File Id='NSSROOTCERTS' LongName='nssckbi.dll' Name='nssckbi.dll' DiskId='1' src='nssckbi.dll' Vital='yes' />
+            </Component>
+
+            <Component Id='NSLDAPLibrary' Guid='205B568A-F46D-4e80-AF5D-F5EDFC478046'>
+              <File Id='NSLDAP' LongName='nsldap32v60.dll' Name='nsldap.dll' DiskId='1' src='nsldap32v60.dll' Vital='yes' />
+            </Component>
+
+            <Component Id='NSLDAPSSLLibrary' Guid='EFB4852A-7135-468b-A454-E61864BF2ECA'>
+              <File Id='NSLDAPSSL' LongName='nsldapssl32v60.dll' Name='nsldapss.dll' DiskId='1' src='nsldapssl32v60.dll' Vital='yes' />
+            </Component>
+
+            <Component Id='NSLDAPPRLibrary' Guid='66390300-D732-4983-B933-A3709F99F6AB'>
+              <File Id='NSLDAPRP' LongName='nsldappr32v60.dll' Name='nsldappr.dll' DiskId='1' src='nsldappr32v60.dll' Vital='yes' />
+            </Component>
+
+            <Component Id='NSLDIFLibrary' Guid='38004143-EB9B-4dec-851A-2E34E8B3249E'>
+              <File Id='NSLDIF' LongName='nsldif32v60.dll' Name='nsldif.dll' DiskId='1' src='nsldif32v60.dll' Vital='yes' />
+            </Component>
+
           </Directory>
       </Directory>
 
@@ -182,6 +224,7 @@
 	  <ComponentRef Id='NSLDAPLibrary' />
 	  <ComponentRef Id='NSLDAPSSLLibrary' />
 	  <ComponentRef Id='NSLDAPPRLibrary' />
+	  <ComponentRef Id='NSLDIFLibrary' />
 	  <ComponentRef Id='NSPRLibrary' />
 	  <ComponentRef Id='NSPRpldsLibrary' />
 	  <ComponentRef Id='NSPRplcLibrary' />
@@ -189,6 +232,11 @@
 	  <ComponentRef Id='NSSsslLibrary' />
 	  <ComponentRef Id='NSSsoftoknLibrary' />
 	  <ComponentRef Id='NSSsmimeLibrary' />
+	  <ComponentRef Id='NSSfreeblLibrary' />
+	  <ComponentRef Id='NSSutilLibrary' />
+	  <ComponentRef Id='NSSsqliteLibrary' />
+	  <ComponentRef Id='NSSdbmLibrary' />
+	  <ComponentRef Id='NSSrootcertsLibrary' />
 	  <ComponentRef Id='NSScertutil' />
 	  <ComponentRef Id='NSSpk12util' />
       </Feature>
@@ -1316,6 +1364,7 @@
     <AdminExecuteSequence />
 
     <InstallExecuteSequence>
+      <Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
       <RemoveExistingProducts After='InstallFinalize' />
     </InstallExecuteSequence>
 
