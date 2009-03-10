@@ -82,8 +82,8 @@ set WXSDIR=%CD%\wix
 
 rem ======== Fetch Components ========
 if [%INTERNAL_BUILD%] == [1] (
-    set COMPONENT_URL=http://tsunami.dsdev.sjc.redhat.com/share/builds/components
-    set COMPONENT_URL2=http://tsunami.dsdev.sjc.redhat.com/share/builds/verification
+    set COMPONENT_URL=%SBC%
+    set COMPONENT_URL2=%SBV%
 ) else (
     set COMPONENT_URL=http://directory.fedoraproject.org/built/components
 )
@@ -97,12 +97,9 @@ if NOT EXIST "%LIBROOT%\nspr" (
     echo %NSPR_LOCATION%/%FLAVOR% > version.txt
     %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
     %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
-
-    ren mdbinary.jar mdbinary.zip
-    ren mdheader.jar mdheader.zip
-    %UNZIP% mdbinary.zip
+    %UNZIP% mdbinary.jar
     cd include
-    %UNZIP% ..\mdheader.zip
+    %UNZIP% ..\mdheader.jar
     popd
 )
 
@@ -115,11 +112,9 @@ if NOT EXIST "%LIBROOT%\nss" (
     echo %NSS_LOCATION%/%FLAVOR% > version.txt
     %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nss\mdbinary.jar"
     %DOWNLOAD% %NSS_LOCATION%/include/xpheader.jar "%LIBROOT%\nss\xpheader.jar"
-    ren mdbinary.jar mdbinary.zip
-    ren xpheader.jar xpheader.zip
-    %UNZIP% mdbinary.zip
+    %UNZIP% mdbinary.jar
     cd include
-    %UNZIP% ..\xpheader.zip
+    %UNZIP% ..\xpheader.jar
     popd
 )
 

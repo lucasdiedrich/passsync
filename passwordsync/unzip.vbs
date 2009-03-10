@@ -4,8 +4,7 @@ Sub Usage()
     WScript.Echo "Usage: cscript unzip.vbs \path\to\file.zip [destinationfolder]"
     WScript.Echo "Example: cscript unzip.vbs ..\src\foo.zip ..\dest"
     WScript.Echo "NOTE: The .zip file must have a .zip extension, so if"
-    WScript.Echo "you are trying to unzip a .jar file, you must copy or rename it"
-    WScript.Echo "to have a .zip extension"
+    WScript.Echo "it does not, a temporary copy will be made with a .zip extension"
     WScript.Echo "If the destinationfolder does not exist, it will be created"
     WScript.Echo "Use '.' for the current directory"
     WScript.Echo "If the destinationfolder is not specified, '.' will be used"
@@ -39,6 +38,17 @@ If not objFSO.FolderExists(DEST) Then
     WScript.Echo "Created new folder", DEST
 End If
 
+' see if file ends in .zip - if not (e.g. .jar) make temp copy
+' that ends in .zip
+Dim newSRC
+newSRC = ""
+If not Right(SRC, 4) = ".zip" Then
+    newSRC = SRC & ".zip"
+    objFSO.CopyFile SRC, newSRC, true
+    SRC = newSRC
+End If
+
+' get the shell application object used to do the unzip
 Set objShell = CreateObject("Shell.Application")
 Set objSrc = objShell.Namespace(SRC)
 Set objDest = objShell.Namespace(DEST)
@@ -47,7 +57,12 @@ Set objDest = objShell.Namespace(DEST)
 ' Next
 objDest.CopyHere(objSrc.Items)
 
-WScript.Echo "Done.  Copied contents of " & SRC & " to " & DEST
+' remove temp zip, if any
+If Len(newSrc) > 0 Then
+    objFSO.DeleteFile(newSRC)
+End If
+
+WScript.Stdout.Write "Done.  Copied contents of " & SRC & " to " & DEST
 
 ' Set WshShell = WScript.CreateObject("WScript.Shell")
 ' WScript.Echo "CD =", WshShell.CurrentDirectory
