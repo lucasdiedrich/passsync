@@ -199,6 +199,7 @@ BOOL CNTService::Install()
     // Get the executable file path
     TCHAR szFilePath[_MAX_PATH];
     ::GetModuleFileName(NULL, szFilePath, sizeof(szFilePath)/sizeof(*szFilePath));
+    int didinstall = FALSE;
 
 	// install if not already installed
 	if (!IsInstalled()) {
@@ -229,6 +230,7 @@ BOOL CNTService::Install()
 		// clean up
 		::CloseServiceHandle(hService);
 		::CloseServiceHandle(hSCM);
+        didinstall = TRUE;
 	}
 
     // make registry entries to support logging messages
@@ -263,10 +265,12 @@ BOOL CNTService::Install()
                     0,
                     REG_DWORD,
                     (CONST BYTE*)&dwData,
-                     sizeof(DWORD));
+                    sizeof(DWORD));
     ::RegCloseKey(hKey);
 
-    LogEvent(EVENTLOG_INFORMATION_TYPE, EVMSG_INSTALLED, m_szServiceName);
+    if (didinstall) {
+        LogEvent(EVENTLOG_INFORMATION_TYPE, EVMSG_INSTALLED, m_szServiceName);
+    }
 
     return TRUE;
 }
