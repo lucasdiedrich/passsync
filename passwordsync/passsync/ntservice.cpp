@@ -199,40 +199,6 @@ BOOL CNTService::Install()
     // Get the executable file path
     TCHAR szFilePath[_MAX_PATH];
     ::GetModuleFileName(NULL, szFilePath, sizeof(szFilePath)/sizeof(*szFilePath));
-    int didinstall = FALSE;
-
-	// install if not already installed
-	if (!IsInstalled()) {
-		// Open the Service Control Manager
-		SC_HANDLE hSCM = ::OpenSCManager(NULL, // local machine
-			NULL, // ServicesActive database
-			SC_MANAGER_ALL_ACCESS); // full access
-		if (!hSCM) return FALSE;
-
-		// Create the service
-		SC_HANDLE hService = ::CreateService(hSCM,
-			m_szServiceName,
-			m_szServiceName,
-			SERVICE_ALL_ACCESS,
-			SERVICE_WIN32_OWN_PROCESS,
-			SERVICE_DEMAND_START,        // start condition
-			SERVICE_ERROR_NORMAL,
-			szFilePath,
-			NULL,
-			NULL,
-			NULL,
-			NULL,
-			NULL);
-		if (!hService) {
-			::CloseServiceHandle(hSCM);
-			return FALSE;
-		}
-		// clean up
-		::CloseServiceHandle(hService);
-		::CloseServiceHandle(hSCM);
-        didinstall = TRUE;
-	}
-
     // make registry entries to support logging messages
     // Add the source name as a subkey under the Application
     // key in the EventLog service portion of the registry.
@@ -267,10 +233,6 @@ BOOL CNTService::Install()
                     (CONST BYTE*)&dwData,
                     sizeof(DWORD));
     ::RegCloseKey(hKey);
-
-    if (didinstall) {
-        LogEvent(EVENTLOG_INFORMATION_TYPE, EVMSG_INSTALLED, m_szServiceName);
-    }
 
     return TRUE;
 }
