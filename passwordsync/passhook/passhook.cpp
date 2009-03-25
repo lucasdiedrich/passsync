@@ -59,11 +59,20 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 	fstream outLog;
 	DWORD waitRes;
 
+	// If UserName is NULL, just return STATUS_SUCCESS
+	if (UserName == NULL) {
+		goto exit;
+	}
+
 	// This memory will be freed in SavePasshookChange
 	if ( newPassInfo = (PASS_INFO *) malloc(sizeof(PASS_INFO)) ) {
 		// These get freed in SavePasshookChange by calling clearSet
 		newPassInfo->username = (char*)malloc((UserName->Length / 2) + 1);
-		newPassInfo->password = (char*)malloc((Password->Length / 2) + 1);
+		if (Password != NULL) {
+			newPassInfo->password = (char*)malloc((Password->Length / 2) + 1);
+		} else {
+			newPassInfo->password = (char*)malloc(1);
+		}
 	} else {
 		goto exit;
 	}
@@ -71,9 +80,13 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 	// Fill in the password change struct
 	if (newPassInfo->username && newPassInfo->password) {
                 _snprintf(newPassInfo->username, (UserName->Length / 2), "%S", UserName->Buffer);
-                _snprintf(newPassInfo->password, (Password->Length / 2), "%S", Password->Buffer);
-                newPassInfo->username[UserName->Length / 2] = '\0';
-                newPassInfo->password[Password->Length / 2] = '\0';
+		newPassInfo->username[UserName->Length / 2] = '\0';
+		if (Password != NULL) {
+                	_snprintf(newPassInfo->password, (Password->Length / 2), "%S", Password->Buffer);
+			newPassInfo->password[Password->Length / 2] = '\0';
+		} else {
+			newPassInfo->password[0] = '\0';
+		}
 
 		// Backoff
                 newPassInfo->backoffCount = 0;
