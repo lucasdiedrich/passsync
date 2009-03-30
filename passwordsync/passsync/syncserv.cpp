@@ -504,6 +504,11 @@ int PassSyncService::QueryUsername(char* username)
 	int result = 0;
 	char searchFilter[SYNCSERV_BUF_SIZE];
 
+	if (username == NULL)
+	{
+		goto exit;
+	}
+
 	if (results != NULL) {
 		ldap_msgfree(results);
 		results = NULL;

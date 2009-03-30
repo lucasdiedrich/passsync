@@ -58,11 +58,6 @@
 //#include "dsperson.h"
 #include "synchcmds.h"
 #include "dssynch.h"
-
-#ifdef _DEBUG
-void doDebug( PassSyncService *pSynch );
-#endif // _DEBUG
-
 //#include <nspr.h>
 
 /////////////////////////////////////////////////////////////////
@@ -330,9 +325,6 @@ main( int argc, char *argv[] )
 	exit(theSynch.m_Status.dwWin32ExitCode);
 
 
-	////////// That's it - the rest is debugging stuff //////
-#ifdef _DEBUG
-	doDebug( &theSynch );
-#endif
+	////////// That's it //////
 	return 0;
 }

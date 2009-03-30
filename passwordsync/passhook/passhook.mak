@@ -94,9 +94,14 @@ CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS"
    $(CPP_PROJ) $< 
 <<
 
-.cpp{$(INTDIR)}.obj::
+{.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
+<<
+
+{..\}.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
@@ -172,9 +177,14 @@ CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /
    $(CPP_PROJ) $< 
 <<
 
-.cpp{$(INTDIR)}.obj::
+{.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
+<<
+
+{..\}.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
@@ -226,21 +236,5 @@ LINK32_OBJS= \
 !ELSE 
 !MESSAGE Warning: cannot find "passhook.dep"
 !ENDIF 
-!ENDIF 
-
-
-!IF "$(CFG)" == "passhook - Win32 Release" || "$(CFG)" == "passhook - Win32 Debug"
-SOURCE=..\passhand.cpp
-
-"$(INTDIR)\passhand.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=.\passhook.cpp
-
-"$(INTDIR)\passhook.obj" : $(SOURCE) "$(INTDIR)"
-
-
-
 !ENDIF 
 

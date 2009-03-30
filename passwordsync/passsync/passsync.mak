@@ -90,16 +90,21 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /ML /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
 
-.cpp{$(INTDIR)}.obj::
+{.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
+<<
+
+{..\}.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
@@ -167,16 +172,21 @@ CLEAN :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
 CPP=cl.exe
-CPP_PROJ=/nologo /MLd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
+CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
 
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
 <<
 
-.cpp{$(INTDIR)}.obj::
+{.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
    $(CPP_PROJ) $< 
+<<
+
+{..\}.cpp{$(INTDIR)}.obj::
+   $(CPP) @<<
+   $(CPP_PROJ) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
@@ -227,36 +237,5 @@ LINK32_OBJS= \
 !ELSE 
 !MESSAGE Warning: cannot find "passsync.dep"
 !ENDIF 
-!ENDIF 
-
-
-!IF "$(CFG)" == "passsync - Win32 Release" || "$(CFG)" == "passsync - Win32 Debug"
-SOURCE=.\ntservice.cpp
-
-"$(INTDIR)\ntservice.obj" : $(SOURCE) "$(INTDIR)"
-
-
-SOURCE=..\passhand.cpp
-
-"$(INTDIR)\passhand.obj" : $(SOURCE) "$(INTDIR)"
-	$(CPP) $(CPP_PROJ) $(SOURCE)
-
-
-SOURCE=.\service.cpp
-
-"$(INTDIR)\service.obj" : $(SOURCE) "$(INTDIR)"
-
-
-SOURCE=.\subuniutil.cpp
-
-"$(INTDIR)\subuniutil.obj" : $(SOURCE) "$(INTDIR)"
-
-
-SOURCE=.\syncserv.cpp
-
-"$(INTDIR)\syncserv.obj" : $(SOURCE) "$(INTDIR)"
-
-
-
 !ENDIF 
 
