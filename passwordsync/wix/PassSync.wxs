@@ -203,6 +203,11 @@
               <File Id='NSLDIF' LongName='nsldif32v60.dll' Name='nsldif.dll' DiskId='1' src='nsldif32v60.dll' Vital='yes' />
             </Component>
 
+            <!-- mozldap requires msvcr71.dll -->
+            <Component Id='NSLDAPmsvcrLibrary' Guid='C0E8DA53-B61A-4b60-8886-8549C29CACE7'>
+              <File Id='NSLDAPmsvcr' LongName='msvcr71.dll' Name='msvcr71.dll' DiskId='1' src='msvcr71.dll' Vital='yes' />
+            </Component>
+
           </Directory>
       </Directory>
 
@@ -225,6 +230,7 @@
 	  <ComponentRef Id='NSLDAPSSLLibrary' />
 	  <ComponentRef Id='NSLDAPPRLibrary' />
 	  <ComponentRef Id='NSLDIFLibrary' />
+          <ComponentRef Id='NSLDAPmsvcrLibrary' />
 	  <ComponentRef Id='NSPRLibrary' />
 	  <ComponentRef Id='NSPRpldsLibrary' />
 	  <ComponentRef Id='NSPRplcLibrary' />

@@ -51,6 +51,7 @@ LAYOUT :
 	copy /Y "$(LIBROOT)\nss\lib\*.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\certutil.exe" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\pk12util.exe" "$(PKGDIR)"
+	copy /Y "%SystemRoot%\system32\msvcr71.dll" "$(PKGDIR)"
 
 PassSync.msi : LAYOUT
 	if not exist "$(PKGDIR)\Binary" mkdir "$(PKGDIR)\Binary"
