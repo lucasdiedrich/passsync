@@ -36,14 +36,14 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 <Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
-  <Product Name='Fedora Directory Password Sync'
+  <Product Name='389 Directory Password Sync'
     Id='D9C09AE2-F504-4875-8C7E-70BF2D791CEB'
     Language='1033' Codepage='1252' UpgradeCode='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'
-    Version='1.1.0' Manufacturer='Fedora Project'>
+    Version='1.1.0' Manufacturer='389 Project'>
 
     <Package Id='????????-????-????-????-????????????' Keywords='Installer'
-      Description="Fedora Directory Password Synchronization Installer"
-      Manufacturer='Fedora Project'
+      Description="389 Directory Password Synchronization Installer"
+      Manufacturer='389 Project'
       InstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
 <!-- this upgrade element is for 1.1.0 and later
@@ -144,7 +144,7 @@
 
       <Directory Id='ProgramFilesFolder' Name='PFiles'>
 
-          <Directory Id='INSTALLDIR' Name='PassSync' LongName='Fedora Directory Password Synchronization'>
+          <Directory Id='INSTALLDIR' Name='PassSync' LongName='389 Directory Password Synchronization'>
 
             <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471'>
               <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
@@ -212,7 +212,7 @@
       </Directory>
 
       <!-- <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
-        <Directory Id="ProgramMenuDir" Name='PassSync' LongName="Fedora Directory Password Synchronization Service" />
+        <Directory Id="ProgramMenuDir" Name='PassSync' LongName="389 Directory Password Synchronization Service" />
     </Directory>
       -->
 

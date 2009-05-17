@@ -85,7 +85,7 @@ if [%INTERNAL_BUILD%] == [1] (
     set COMPONENT_URL=%SBC%
     set COMPONENT_URL2=%SBV%
 ) else (
-    set COMPONENT_URL=http://directory.fedoraproject.org/built/components
+    set COMPONENT_URL=http://port389.org/built/components
 )
 
 rem   ------ NSPR ------
