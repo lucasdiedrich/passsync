@@ -43,7 +43,7 @@ CFG=passhook - Win32 Debug
 !MESSAGE No configuration specified. Defaulting to passhook - Win32 Debug.
 !ENDIF 
 
-!IF "$(CFG)" != "passhook - Win32 Release" && "$(CFG)" != "passhook - Win32 Debug"
+!IF "$(CFG)" != "passhook - Win32 Release" && "$(CFG)" != "passhook - Win32 Debug" && "$(CFG)" != "passhook - Win64 Release" && "$(CFG)" != "passhook - Win64 Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
@@ -54,6 +54,8 @@ CFG=passhook - Win32 Debug
 !MESSAGE 
 !MESSAGE "passhook - Win32 Release" (based on "Win32 (x86) Dynamic-Link Library")
 !MESSAGE "passhook - Win32 Debug" (based on "Win32 (x86) Dynamic-Link Library")
+!MESSAGE "passhook - Win64 Release" (based on "Win64 (x64) Dynamic-Link Library")
+!MESSAGE "passhook - Win64 Debug" (based on "Win64 (x64) Dynamic-Link Library")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ENDIF 
@@ -64,7 +66,12 @@ NULL=
 NULL=nul
 !ENDIF 
 
-!IF  "$(CFG)" == "passhook - Win32 Release"
+!IF  "$(CFG)" == "passhook - Win64 Release" || "$(CFG)" == "passhook - Win64 Debug"
+DEF64=/D "WIN64"
+MACH=/MACHINE:X64
+!ELSE
+MACH=/MACHINE:X86
+!ENDIF
 
 OUTDIR=$(OBJDEST)\passhook
 INTDIR=$(OBJDEST)\passhook
@@ -72,163 +79,97 @@ INTDIR=$(OBJDEST)\passhook
 OutDir=$(OBJDEST)\passhook
 # End Custom Macros
 
-ALL : "$(OUTDIR)\passhook.dll"
-
-
-CLEAN :
-	-@erase "$(INTDIR)\passhand.obj"
-	-@erase "$(INTDIR)\passhook.obj"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(OUTDIR)\passhook.dll"
-	-@erase "$(OUTDIR)\passhook.exp"
-	-@erase "$(OUTDIR)\passhook.lib"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
 CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PASSHOOK_EXPORTS" /Fp"$(INTDIR)\passhook.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
+COMMON_CPPFLAGS=/nologo /W3 /EHsc /D "WIN32" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PASSHOOK_EXPORTS" /Fp"$(INTDIR)\passhook.pch" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD $(DEF64) /c 
+OPT_CPPFLAGS=/MT /O2 /D "NDEBUG" $(COMMON_CPPFLAGS)
+DBG_CPPFLAGS=/MTd /Gm /Zi /D "_DEBUG" /RTC1 $(COMMON_CPPFLAGS)
 
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
+SYS_LIBS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+MOZ_LIBS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib
+LIBS=$(SYS_LIBS) $(MOZ_LIBS)
 
-{.\}.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
+DEF_FILE= \
+	".\passhook.def"
+OBJS= \
+	"$(INTDIR)\passhand.obj" \
+	"$(INTDIR)\passhook.obj"
 
-{..\}.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $<
-<<
+COMMON_LDFLAGS=$(MACH) /nologo /dll /pdb:"$(OUTDIR)\passhook.pdb" /out:$@ /implib:"$(OUTDIR)\passhook.lib" /def:$(DEF_FILE)
+OPT_LDFLAGS=/incremental:no $(COMMON_LDFLAGS)
+DBG_LDFLAGS=/incremental:yes /debug $(COMMON_LDFLAGS)
 
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-MTL=midl.exe
+!IF  "$(CFG)" == "passhook - Win32 Release" || "$(CFG)" == "passhook - Win64 Release"
+CPPFLAGS=$(OPT_CPPFLAGS)
+LDFLAGS=$(OPT_LDFLAGS)
 MTL_PROJ=/nologo /D "NDEBUG" /mktyplib203 /win32 
+!ELSEIF  "$(CFG)" == "passhook - Win32 Debug" || "$(CFG)" == "passhook - Win64 Debug"
+CPPFLAGS=$(DBG_CPPFLAGS)
+LDFLAGS=$(DBG_LDFLAGS)
+MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
+!ENDIF
+
+CPP=cl.exe
+
 RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc" 
-BSC32_SBRS= \
+BSC=bscmake.exe
+BSC_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc" 
+BSC_SBRS= \
 	
-LINK32=link.exe
-LINK32_FLAGS=nss3.lib nssutil3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:no /pdb:"$(OUTDIR)\passhook.pdb" /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
-DEF_FILE= \
-	".\passhook.def"
-LINK32_OBJS= \
-	"$(INTDIR)\passhand.obj" \
-	"$(INTDIR)\passhook.obj"
-
-"$(OUTDIR)\passhook.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
-
-!ELSEIF  "$(CFG)" == "passhook - Win32 Debug"
-
-OUTDIR=$(OBJDEST)\passhook
-INTDIR=$(OBJDEST)\passhook
-# Begin Custom Macros
-OutDir=$(OBJDEST)\passhook
-# End Custom Macros
+LINK=link.exe
+MTL=midl.exe
 
 ALL : "$(OUTDIR)\passhook.dll"
-
 
 CLEAN :
 	-@erase "$(INTDIR)\passhand.obj"
 	-@erase "$(INTDIR)\passhook.obj"
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(OUTDIR)\passhook.dll"
 	-@erase "$(OUTDIR)\passhook.exp"
-	-@erase "$(OUTDIR)\passhook.ilk"
 	-@erase "$(OUTDIR)\passhook.lib"
-	-@erase "$(OUTDIR)\passhook.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_WINDOWS" /D "_MBCS" /D "_USRDLL" /D "PASSHOOK_EXPORTS" /Fp"$(INTDIR)\passhook.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 {.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 {..\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $<
+   $(CPPFLAGS) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .c{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .cpp{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .cxx{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
-MTL=midl.exe
-MTL_PROJ=/nologo /D "_DEBUG" /mktyplib203 /win32 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\passhook.bsc" 
-BSC32_SBRS= \
-	
-LINK32=link.exe
-LINK32_FLAGS=nss3.lib nssutil3.lib libnspr4.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /dll /incremental:yes /pdb:"$(OUTDIR)\passhook.pdb" /debug /machine:I386 /def:".\passhook.def" /out:"$(OUTDIR)\passhook.dll" /implib:"$(OUTDIR)\passhook.lib" 
-DEF_FILE= \
-	".\passhook.def"
-LINK32_OBJS= \
-	"$(INTDIR)\passhand.obj" \
-	"$(INTDIR)\passhook.obj"
-
-"$(OUTDIR)\passhook.dll" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
+"$(OUTDIR)\passhook.dll" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
+    $(LINK) @<<
+  $(LDFLAGS) $(LIBS) $(OBJS)
 <<
-
-!ENDIF 
-
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
 !IF EXISTS("passhook.dep")

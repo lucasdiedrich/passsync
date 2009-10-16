@@ -34,6 +34,53 @@
  * Copyright (C) 2005 Red Hat, Inc.
  * All rights reserved.
  * --- END COPYRIGHT BLOCK --- */
+/*----------------------------------------------------------------------------*/
+
+#if _MSC_VER >= 1400
+
+/*----------------------------------------------------------------------------*/
+
+#pragma message ( "Setting up manifest..." )
+
+/*----------------------------------------------------------------------------*/
+
+#ifndef _CRT_ASSEMBLY_VERSION
+#include <crtassem.h>
+#endif 
+
+/*----------------------------------------------------------------------------*/
+
+#ifdef WIN64
+    #pragma message ( "processorArchitecture=amd64" )
+    #define MF_PROCESSORARCHITECTURE "amd64"
+#else
+    #pragma message ( "processorArchitecture=x86" )
+    #define MF_PROCESSORARCHITECTURE "x86"
+#endif 
+
+/*----------------------------------------------------------------------------*/
+
+#ifdef _DEBUG
+    #pragma message ( __LIBRARIES_ASSEMBLY_NAME_PREFIX ".DebugCRT=" _CRT_ASSEMBLY_VERSION ) 
+    #pragma comment(linker,"/manifestdependency:\"type='win32' "            \
+    		"name='" __LIBRARIES_ASSEMBLY_NAME_PREFIX ".DebugCRT' "         \
+    		"version='" _CRT_ASSEMBLY_VERSION "' "                          \
+    		"processorArchitecture='" MF_PROCESSORARCHITECTURE "' "         \
+    		"publicKeyToken='" _VC_ASSEMBLY_PUBLICKEYTOKEN "'\"")
+#else
+    #pragma message ( __LIBRARIES_ASSEMBLY_NAME_PREFIX ".CRT=" _CRT_ASSEMBLY_VERSION ) 
+    #pragma comment(linker,"/manifestdependency:\"type='win32' "            \
+    		"name='" __LIBRARIES_ASSEMBLY_NAME_PREFIX ".CRT' "              \
+    		"version='" _CRT_ASSEMBLY_VERSION "' "                          \
+    		"processorArchitecture='" MF_PROCESSORARCHITECTURE "' "         \
+    		"publicKeyToken='" _VC_ASSEMBLY_PUBLICKEYTOKEN "'\"")
+#endif
+
+/*----------------------------------------------------------------------------*/
+
+#endif /* _MSC_VER */
+
+/*----------------------------------------------------------------------------*/
 
 // Created: 2-8-2005
 // Author(s): Scott Bridges

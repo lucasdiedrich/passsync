@@ -39,6 +39,8 @@
 # nmake Makefile for Windows Sync components
 #
 
+DEFAULT : PASSSYNC
+
 ALL : PASSSYNC NTDS
 
 CLEAN_ALL : CLEAN

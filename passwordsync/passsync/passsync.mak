@@ -43,7 +43,7 @@ CFG=passsync - Win32 Debug
 !MESSAGE No configuration specified. Defaulting to passsync - Win32 Debug.
 !ENDIF 
 
-!IF "$(CFG)" != "passsync - Win32 Release" && "$(CFG)" != "passsync - Win32 Debug"
+!IF "$(CFG)" != "passsync - Win32 Release" && "$(CFG)" != "passsync - Win32 Debug" && "$(CFG)" != "passsync - Win64 Release" && "$(CFG)" != "passsync - Win64 Debug"
 !MESSAGE Invalid configuration "$(CFG)" specified.
 !MESSAGE You can specify a configuration when running NMAKE
 !MESSAGE by defining the macro CFG on the command line. For example:
@@ -54,98 +54,55 @@ CFG=passsync - Win32 Debug
 !MESSAGE 
 !MESSAGE "passsync - Win32 Release" (based on "Win32 (x86) Console Application")
 !MESSAGE "passsync - Win32 Debug" (based on "Win32 (x86) Console Application")
+!MESSAGE "passsync - Win64 Release" (based on "Win64 (x64) Console Application")
+!MESSAGE "passsync - Win64 Debug" (based on "Win64 (x64) Console Application")
 !MESSAGE 
 !ERROR An invalid configuration is specified.
 !ELSE
 !MESSAGE Build flavor is $(CFG)
 !ENDIF 
 
-!IF "$(OS)" == "Windows_NT"
-NULL=
-!ELSE 
-NULL=nul
-!ENDIF 
+!IF  "$(CFG)" == "passsync - Win64 Release" || "$(CFG)" == "passsync - Win64 Debug"
+DEF64=/D "WIN64"
+MACH=/MACHINE:X64
+!ELSE
+MACH=/MACHINE:X86
+!ENDIF
 
-!IF  "$(CFG)" == "passsync - Win32 Release"
+COMMON_CPPFLAGS=/nologo /W3 /EHsc /D "WIN32" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD $(DEF64) /c
+OPT_CPPFLAGS=/MT /O2 /D "NDEBUG" $(COMMON_CPPFLAGS)
+DBG_CPPFLAGS=/MTd /Gm /Zi /D "_DEBUG" /RTC1 $(COMMON_CPPFLAGS)
 
-OUTDIR=$(OBJDEST)\passsync
-INTDIR=$(OBJDEST)\passsync
-# Begin Custom Macros
-OutDir=$(OBJDEST)\passsync
-# End Custom Macros
+SYS_LIBS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
+MOZ_LIBS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib nsldappr32v60.lib nsldapssl32v60.lib nsldap32v60.lib
+LIBS=$(SYS_LIBS) $(MOZ_LIBS)
 
-ALL : "$(OUTDIR)\passsync.exe"
+COMMON_LDFLAGS=$(MACH) /MANIFEST /nologo /subsystem:console /pdb:"$(OUTDIR)\passsync.pdb" /out:$@ dssynchmsg.res
+OPT_LDFLAGS=/incremental:no $(COMMON_LDFLAGS)
+DBG_LDFLAGS=/incremental:yes /debug $(COMMON_LDFLAGS)
 
+_VC_MANIFEST_EMBED_EXE=if exist $@.manifest mt.exe -manifest $@.manifest -outputresource:$@;1
 
-CLEAN :
-	-@erase "$(INTDIR)\ntservice.obj"
-	-@erase "$(INTDIR)\passhand.obj"
-	-@erase "$(INTDIR)\service.obj"
-	-@erase "$(INTDIR)\subuniutil.obj"
-	-@erase "$(INTDIR)\syncserv.obj"
-	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(OUTDIR)\passsync.exe"
-
-"$(OUTDIR)" :
-    if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
-
-CPP=cl.exe
-CPP_PROJ=/nologo /MT /W3 /GX /O2 /D "WIN32" /D "NDEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /c 
-
-.c{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-{.\}.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-{..\}.cpp{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $<
-<<
-
-.cxx{$(INTDIR)}.obj::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.c{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cpp{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-.cxx{$(INTDIR)}.sbr::
-   $(CPP) @<<
-   $(CPP_PROJ) $< 
-<<
-
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\passsync.bsc" 
-BSC32_SBRS= \
-	
-LINK32=link.exe
-LINK32_FLAGS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib nsldappr32v60.lib nsldapssl32v60.lib nsldap32v60.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:no /pdb:"$(OUTDIR)\passsync.pdb" /machine:I386 /out:"$(OUTDIR)\passsync.exe" dssynchmsg.res
-LINK32_OBJS= \
+OBJS= \
 	"$(INTDIR)\ntservice.obj" \
 	"$(INTDIR)\passhand.obj" \
 	"$(INTDIR)\service.obj" \
 	"$(INTDIR)\subuniutil.obj" \
 	"$(INTDIR)\syncserv.obj"
 
-"$(OUTDIR)\passsync.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-  $(LINK32) @<< $(LINK32_FLAGS) $(LINK32_OBJS)
-<<
+!IF  "$(CFG)" == "passsync - Win32 Release" || "$(CFG)" == "passsync - Win64 Release"
+CPPFLAGS=$(OPT_CPPFLAGS)
+LDFLAGS=$(OPT_LDFLAGS)
+!ELSEIF  "$(CFG)" == "passsync - Win32 Debug" || "$(CFG)" == "passsync - Win64 Debug"
+CPPFLAGS=$(DBG_CPPFLAGS)
+LDFLAGS=$(DBG_LDFLAGS)
+!ENDIF
 
-!ELSEIF  "$(CFG)" == "passsync - Win32 Debug"
+!IF "$(OS)" == "Windows_NT"
+NULL=
+!ELSE 
+NULL=nul
+!ENDIF
 
 OUTDIR=$(OBJDEST)\passsync
 INTDIR=$(OBJDEST)\passsync
@@ -153,83 +110,68 @@ INTDIR=$(OBJDEST)\passsync
 OutDir=$(OBJDEST)\passsync
 # End Custom Macros
 
+CPP=cl.exe
+
+RSC=rc.exe
+BSC=bscmake.exe
+BSC_FLAGS=/nologo /o"$(OUTDIR)\passsync.bsc" 
+BSC_SBRS= \
+	
+LINK=link.exe
+
 ALL : "$(OUTDIR)\passsync.exe"
 
-
 CLEAN :
-	-@erase "$(INTDIR)\ntservice.obj"
-	-@erase "$(INTDIR)\passhand.obj"
-	-@erase "$(INTDIR)\service.obj"
-	-@erase "$(INTDIR)\subuniutil.obj"
-	-@erase "$(INTDIR)\syncserv.obj"
+	-@erase $(OBJS)
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(OUTDIR)\passsync.exe"
+	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(OUTDIR)\passsync.ilk"
 	-@erase "$(OUTDIR)\passsync.pdb"
 
 "$(OUTDIR)" :
     if not exist "$(OUTDIR)/$(NULL)" mkdir "$(OUTDIR)"
 
-CPP=cl.exe
-CPP_PROJ=/nologo /MTd /W3 /Gm /GX /ZI /Od /D "WIN32" /D "_DEBUG" /D "_CONSOLE" /D "_MBCS" /Fp"$(INTDIR)\passsync.pch" /YX /Fo"$(INTDIR)\\" /Fd"$(INTDIR)\\" /FD /GZ /c 
-
 .c{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 {.\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 {..\}.cpp{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $<
+   $(CPPFLAGS) $<
 <<
 
 .cxx{$(INTDIR)}.obj::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .c{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .cpp{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
 .cxx{$(INTDIR)}.sbr::
    $(CPP) @<<
-   $(CPP_PROJ) $< 
+   $(CPPFLAGS) $< 
 <<
 
-RSC=rc.exe
-BSC32=bscmake.exe
-BSC32_FLAGS=/nologo /o"$(OUTDIR)\passsync.bsc" 
-BSC32_SBRS= \
-	
-LINK32=link.exe
-LINK32_FLAGS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib nsldappr32v60.lib nsldapssl32v60.lib nsldap32v60.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib /nologo /subsystem:console /incremental:yes /pdb:"$(OUTDIR)\passsync.pdb" /debug /machine:I386 /out:"$(OUTDIR)\passsync.exe" dssynchmsg.res
-LINK32_OBJS= \
-	"$(INTDIR)\ntservice.obj" \
-	"$(INTDIR)\passhand.obj" \
-	"$(INTDIR)\service.obj" \
-	"$(INTDIR)\subuniutil.obj" \
-	"$(INTDIR)\syncserv.obj"
-
-"$(OUTDIR)\passsync.exe" : "$(OUTDIR)" $(DEF_FILE) $(LINK32_OBJS)
-    $(LINK32) @<<
-  $(LINK32_FLAGS) $(LINK32_OBJS)
+"$(OUTDIR)\passsync.exe" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
+	$(LINK) @<<
+$(LDFLAGS) $(LIBS) $(OBJS)
 <<
-
-!ENDIF 
-
+	$(_VC_MANIFEST_EMBED_EXE)
 
 !IF "$(NO_EXTERNAL_DEPS)" != "1"
 !IF EXISTS("passsync.dep")

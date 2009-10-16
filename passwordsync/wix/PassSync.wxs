@@ -35,16 +35,30 @@
  Copyright (C) 2005 Red Hat, Inc.
  All rights reserved.
  END COPYRIGHT BLOCK -->
+
+<?define Property_ProductCode = "D9C09AE2-F504-4875-8C7E-70BF2D791CEB" ?>
+<?if $(var.USE64)=1 ?>
+    <?define Property_SysFolder = "System64Folder" ?>
+    <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>
+    <?define Property_Win64 = "yes" ?>
+    <?define Property_Platform = "x64" ?>
+<?else ?>
+    <?define Property_SysFolder = "SystemFolder" ?>
+    <?define Property_PFilesFolder = "ProgramFilesFolder" ?>
+    <?define Property_Win64 = "no" ?>
+    <?define Property_Platform = "Intel" ?>
+<?endif ?>
+
 <Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
-  <Product Name='389 Directory Password Sync'
-    Id='D9C09AE2-F504-4875-8C7E-70BF2D791CEB'
+  <Product Name='$(var.BRAND) Directory Password Sync'
+    Id='$(var.Property_ProductCode)'
     Language='1033' Codepage='1252' UpgradeCode='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'
-    Version='1.1.0' Manufacturer='389 Project'>
+    Version='$(var.VERSION)' Manufacturer='$(var.VENDOR)'>
 
     <Package Id='????????-????-????-????-????????????' Keywords='Installer'
-      Description="389 Directory Password Synchronization Installer"
-      Manufacturer='389 Project'
-      InstallerVersion='100' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+      Description="$(var.BRAND) Directory Password Synchronization Installer"
+      Manufacturer='$(var.VENDOR)' Platforms='$(var.Property_Platform)'
+      InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
 <!-- this upgrade element is for 1.1.0 and later
      if we are upgrading the same version that is already installed,
@@ -54,9 +68,9 @@
 -->
     <Upgrade Id='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'>
       <UpgradeVersion OnlyDetect='no' Property='PATCHFOUND'
-        IncludeMinimum='yes' Minimum='1.0.0' Maximum='1.1.0' IncludeMaximum='no' />
+        IncludeMinimum='yes' Minimum='1.0.0' Maximum='$(var.VERSION)' IncludeMaximum='no' />
       <UpgradeVersion OnlyDetect='yes' Property='NEWERFOUND'
-        Minimum='1.1.0' IncludeMinimum='no' />
+        Minimum='$(var.VERSION)' IncludeMinimum='no' />
     </Upgrade>
 
     <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
@@ -91,62 +105,62 @@
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
 
-      <Directory Id='SystemFolder' Name='SysDir'>
-        <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D'>
+      <Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
+        <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D' Win64='$(var.Property_Win64)'>
           <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' src='passhook.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5'>
+        <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5' Win64='$(var.Property_Win64)'>
           <File Id='NSPR' LongName='libnspr4.dll' Name='libnspr4.dll' DiskId='1' src='libnspr4.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSPRpldsLibrary' Guid='50C89341-754F-4092-8307-129DB119B42E'>
+        <Component Id='NSPRpldsLibrary' Guid='50C89341-754F-4092-8307-129DB119B42E' Win64='$(var.Property_Win64)'>
           <File Id='NSPRPLDS' LongName='libplds4.dll' Name='libplds4.dll' DiskId='1' src='libplds4.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSPRplcLibrary' Guid='1B8B1D78-E2C1-4F3A-A841-C79FFE26E6E0'>
+        <Component Id='NSPRplcLibrary' Guid='1B8B1D78-E2C1-4F3A-A841-C79FFE26E6E0' Win64='$(var.Property_Win64)'>
           <File Id='NSPRPLC' LongName='libplc4.dll' Name='libplc4.dll' DiskId='1' src='libplc4.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSLibrary' Guid='5E122346-6B77-456D-BCC5-76D7FA8AF258'>
+        <Component Id='NSSLibrary' Guid='5E122346-6B77-456D-BCC5-76D7FA8AF258' Win64='$(var.Property_Win64)'>
           <File Id='NSS' LongName='nss3.dll' Name='nss3.dll' DiskId='1' src='nss3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSsslLibrary' Guid='A39CC896-F455-4701-9BF0-D1E31C116DE2'>
+        <Component Id='NSSsslLibrary' Guid='A39CC896-F455-4701-9BF0-D1E31C116DE2' Win64='$(var.Property_Win64)'>
           <File Id='NSSSSL' LongName='ssl3.dll' Name='ssl3.dll' DiskId='1' src='ssl3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSsoftoknLibrary' Guid='9C57A076-D52A-4E74-A46A-DDF916A7D8BD'>
+        <Component Id='NSSsoftoknLibrary' Guid='9C57A076-D52A-4E74-A46A-DDF916A7D8BD' Win64='$(var.Property_Win64)'>
           <File Id='NSSSOFTTOKN' LongName='softokn3.dll' Name='softokn3.dll' DiskId='1' src='softokn3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSsmimeLibrary' Guid='E1030203-0A43-4767-BF5F-C7A51C687040'>
+        <Component Id='NSSsmimeLibrary' Guid='E1030203-0A43-4767-BF5F-C7A51C687040' Win64='$(var.Property_Win64)'>
           <File Id='NSSSMIME' LongName='smime3.dll' Name='smime3.dll' DiskId='1' src='smime3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSfreeblLibrary' Guid='405D9E74-1B7C-41e2-A9CC-DC8F0CEA1565'>
+        <Component Id='NSSfreeblLibrary' Guid='405D9E74-1B7C-41e2-A9CC-DC8F0CEA1565' Win64='$(var.Property_Win64)'>
           <File Id='NSSFREEBL' LongName='freebl3.dll' Name='freebl3.dll' DiskId='1' src='freebl3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSutilLibrary' Guid='2740AA9B-888A-4967-80A5-9CA222582816'>
+        <Component Id='NSSutilLibrary' Guid='2740AA9B-888A-4967-80A5-9CA222582816' Win64='$(var.Property_Win64)'>
           <File Id='NSSUTIL' LongName='nssutil3.dll' Name='nssutil3.dll' DiskId='1' src='nssutil3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSsqliteLibrary' Guid='C2EE5C29-0588-4ec8-B1AB-324FF878DB7D'>
+        <Component Id='NSSsqliteLibrary' Guid='C2EE5C29-0588-4ec8-B1AB-324FF878DB7D' Win64='$(var.Property_Win64)'>
           <File Id='NSSSQLITE' LongName='sqlite3.dll' Name='sqlite3.dll' DiskId='1' src='sqlite3.dll' Vital='yes' />
         </Component>
 
-        <Component Id='NSSdbmLibrary' Guid='F4B8B7FA-11A5-43af-B471-0C71AFC2CAB9'>
+        <Component Id='NSSdbmLibrary' Guid='F4B8B7FA-11A5-43af-B471-0C71AFC2CAB9' Win64='$(var.Property_Win64)'>
           <File Id='NSSDBM' LongName='nssdbm3.dll' Name='nssdbm3.dll' DiskId='1' src='nssdbm3.dll' Vital='yes' />
         </Component>
 
       </Directory>
 
-      <Directory Id='ProgramFilesFolder' Name='PFiles'>
+      <Directory Id='$(var.Property_PFilesFolder)' Name='PFiles'>
 
-          <Directory Id='INSTALLDIR' Name='PassSync' LongName='389 Directory Password Synchronization'>
+          <Directory Id='INSTALLDIR' Name='PassSync' LongName='$(var.BRAND) Directory Password Synchronization'>
 
-            <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471'>
+            <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471' Win64='$(var.Property_Win64)'>
               <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
                 src='passsync.exe' Vital='yes' />
             <!--  <Shortcut Id="startmenuPassSync" Directory="ProgramMenuDir" Name="PassSync" 
@@ -175,47 +189,41 @@
 		   Type='multiString' Value='passhook'/>
             </Component>
 
-            <Component Id='NSScertutil' Guid='EE2FB62B-E104-4049-8A6D-B96D4524FC29'>
+            <Component Id='NSScertutil' Guid='EE2FB62B-E104-4049-8A6D-B96D4524FC29' Win64='$(var.Property_Win64)'>
               <File Id='NSSCERTUTIL' LongName='certutil.exe' Name='certutil.exe' DiskId='1' src='certutil.exe' Vital='yes' />
             </Component>
 
-            <Component Id='NSSpk12util' Guid='13393BA9-550A-4330-85B9-76F14225A6D7'>
+            <Component Id='NSSpk12util' Guid='13393BA9-550A-4330-85B9-76F14225A6D7' Win64='$(var.Property_Win64)'>
               <File Id='NSSPK12UTIL' LongName='pk12util.exe' Name='pk12util.exe' DiskId='1' src='pk12util.exe' Vital='yes' />
             </Component>
 
-            <Component Id='NSSrootcertsLibrary' Guid='783828BA-5B72-4320-92CA-127C42E2179E'>
+            <Component Id='NSSrootcertsLibrary' Guid='783828BA-5B72-4320-92CA-127C42E2179E' Win64='$(var.Property_Win64)'>
               <File Id='NSSROOTCERTS' LongName='nssckbi.dll' Name='nssckbi.dll' DiskId='1' src='nssckbi.dll' Vital='yes' />
             </Component>
 
-            <Component Id='NSLDAPLibrary' Guid='205B568A-F46D-4e80-AF5D-F5EDFC478046'>
+            <Component Id='NSLDAPLibrary' Guid='205B568A-F46D-4e80-AF5D-F5EDFC478046' Win64='$(var.Property_Win64)'>
               <File Id='NSLDAP' LongName='nsldap32v60.dll' Name='nsldap.dll' DiskId='1' src='nsldap32v60.dll' Vital='yes' />
             </Component>
 
-            <Component Id='NSLDAPSSLLibrary' Guid='EFB4852A-7135-468b-A454-E61864BF2ECA'>
+            <Component Id='NSLDAPSSLLibrary' Guid='EFB4852A-7135-468b-A454-E61864BF2ECA' Win64='$(var.Property_Win64)'>
               <File Id='NSLDAPSSL' LongName='nsldapssl32v60.dll' Name='nsldapss.dll' DiskId='1' src='nsldapssl32v60.dll' Vital='yes' />
             </Component>
 
-            <Component Id='NSLDAPPRLibrary' Guid='66390300-D732-4983-B933-A3709F99F6AB'>
+            <Component Id='NSLDAPPRLibrary' Guid='66390300-D732-4983-B933-A3709F99F6AB' Win64='$(var.Property_Win64)'>
               <File Id='NSLDAPRP' LongName='nsldappr32v60.dll' Name='nsldappr.dll' DiskId='1' src='nsldappr32v60.dll' Vital='yes' />
             </Component>
 
-            <Component Id='NSLDIFLibrary' Guid='38004143-EB9B-4dec-851A-2E34E8B3249E'>
+            <Component Id='NSLDIFLibrary' Guid='38004143-EB9B-4dec-851A-2E34E8B3249E' Win64='$(var.Property_Win64)'>
               <File Id='NSLDIF' LongName='nsldif32v60.dll' Name='nsldif.dll' DiskId='1' src='nsldif32v60.dll' Vital='yes' />
             </Component>
 
-            <!-- mozldap requires msvcr71.dll -->
-            <Component Id='NSLDAPmsvcrLibrary' Guid='C0E8DA53-B61A-4b60-8886-8549C29CACE7'>
-              <File Id='NSLDAPmsvcr' LongName='msvcr71.dll' Name='msvcr71.dll' DiskId='1' src='msvcr71.dll' Vital='yes' />
+            <!-- mozldap requires msvc redist runtime dll -->
+            <Component Id='NSLDAPmsvcrLibrary' Guid='C0E8DA53-B61A-4b60-8886-8549C29CACE7' Win64='$(var.Property_Win64)'>
+              <File Id='NSLDAPmsvcr' LongName='$(var.VCREDISTDLLNAME)' Name='$(var.VCREDISTDLLNAME)' DiskId='1' src='$(var.VCREDISTDLLNAME)' Vital='yes' />
             </Component>
 
           </Directory>
       </Directory>
-
-      <!-- <Directory Id="ProgramMenuFolder" Name="PMenu" LongName="Programs">
-        <Directory Id="ProgramMenuDir" Name='PassSync' LongName="389 Directory Password Synchronization Service" />
-    </Directory>
-      -->
-
       <Directory Id="DesktopFolder" Name="Desktop" />
     </Directory>
 

@@ -39,20 +39,128 @@
 
 @echo off
 
-rem set DOWNLOAD=echo DOWNLOAD
-set DOWNLOAD="c:\program files\support tools\bitsadmin" /wrap /transfer passsyncbuild /download /priority normal
-set UNZIP=cscript //nologo "%CD%\unzip.vbs"
+if exist "c:\program files\support tools\bitsadmin.exe" (
+   set BITSADMIN="c:\program files\support tools\bitsadmin.exe"
+) else (
+REM assume its in the PATH
+   set BITSADMIN=bitsadmin
+)
+set DOWNLOAD=%BITSADMIN% /wrap /transfer passsyncbuild /download /priority normal
+@rem set UZCMD=cscript //nologo "%CD%\unzip.vbs"
+@rem HACK HACK HACK
+@rem unzip.vbs just stopped working - gives File or Folder exists
+@rem which is clearly not true
+@ren so, fall back on MozillaTools
+set UZCMD=C:\mozilla-build\info-zip\unzip.exe -q
+@rem set UZCMD=cscript //nologo "%CD%\unzip.vbs"
 @rem set DOWNLOAD=wget --no-directories
-@rem set UNZIP=unzip -q
+@rem set UZCMD=unzip -q
 
+rem APPVER and CPU should be set in the batch file used to start
+rem the command shell to set up the MS VC/SDK build environment
+rem use goto to support if/elseif/elseif/else style statements
+if [%APPVER%] == [6.0] goto WINVER60
+rem else
+goto WINVER52
+
+:WINVER60
+set WINVER=6.0
+goto SETPLATFORM
+
+:WINVER52
+set WINVER=5.2
+goto SETPLATFORM
+
+:SETPLATFORM
+if [%CPU%] == [AMD64] (
+  set FLAG64=_64
+  set USE64=1
+  set PLATFORM=x86_64
 if [%BUILD_DEBUG%] == [optimize] (
-    set FLAVOR=WINNT5.0_OPT.OBJ
+    set OPTDBG=_OPT
+    set CFG1="passsync - Win64 Release"
+    set CFG2="passhook - Win64 Release"
+    set FLV=opt
+    set platdir=amd64
+    set subdir=CRT
+) else (
+    set OPTDBG=_DBG
+    set CFG1="passsync - Win64 Debug"
+    set CFG2="passhook - Win64 Debug"
+    set FLV=dbg
+    set platdir=Debug_NonRedist\amd64
+    set subdir=DebugCRT
+    set suf=d
+)
+) else (
+  set PLATFORM=i386
+if [%BUILD_DEBUG%] == [optimize] (
+    set OPTDBG=_OPT
     set CFG1="passsync - Win32 Release"
     set CFG2="passhook - Win32 Release"
+    set FLV=opt
+    set platdir=x86
+    set subdir=CRT
 ) else (
-    set FLAVOR=WINNT5.0_DBG.OBJ
+    set OPTDBG=_DBG
     set CFG1="passsync - Win32 Debug"
     set CFG2="passhook - Win32 Debug"
+    set FLV=dbg
+    set platdir=Debug_NonRedist\x86
+    set subdir=DebugCRT
+    set suf=d
+)
+)
+
+set FLAVOR=WINNT%WINVER%%FLAG64%%OPTDBG%.OBJ
+
+echo Build flavor is %FLAVOR%
+
+REM this next part assumes you have set up the environment by running
+REM one of the start-msvcxx.bat or SetEnv.cmd batch files/scripts
+REM provided with MS Visual C++, Visual Studio, or SDK - those batch
+REM files set certain environment variables we use to figure out
+REM where the redistributable files are that we need to package
+REM we will pass this information down into package.mak and the .wxs
+if ["%VCRoot%"] == [] (
+    if ["%VCINSTALLDIR%"] == [] (
+        echo Error: could not find the location of the MSVC redistributable package
+        echo please make sure either VCRoot or VCINSTALLDIR is set to the
+        echo base VC location e.g.
+        echo "set VCRoot=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\"
+        exit 1
+    ) else (
+        set vcredistroot="%VCINSTALLDIR%redist\%platdir%"
+    )
+) else (
+    set vcredistroot="%VCRoot%redist\%platdir%"
+)
+
+REM figure out which version we're using
+if exist "%vcredistroot%\Microsoft.VC71.%subdir%\msvcr71%suf%.dll" (
+   set vcredistdllname=msvcr71%suf%.dll
+   set vcredistdll=%vcredistroot%\Microsoft.VC71.%subdir%\msvcr71%suf%.dll
+)
+if exist "%vcredistroot%\Microsoft.VC80.%subdir%\msvcr80%suf%.dll" (
+   set vcredistdllname=msvcr80%suf%.dll
+   set vcredistdll=%vcredistroot%\Microsoft.VC80.%subdir%\msvcr80%suf%.dll
+)
+if exist "%vcredistroot%\Microsoft.VC90.%subdir%\msvcr90%suf%.dll" (
+   set vcredistdllname=msvcr90%suf%.dll
+   set vcredistdll=%vcredistroot%\Microsoft.VC90.%subdir%\msvcr90%suf%.dll
+)
+
+if [%BRAND%] == [] (
+   set BRAND=389
+)
+if [%VENDOR%] == [] (
+   set VENDOR=389 Project
+)
+if [%BRANDNOSPACE%] == [] (
+   set BRANDNOSPACE=389
+)
+if [%VERSION%] == [] (
+   set VERSION=1.1.1
 )
 
 rem ======== Set Various Build Directories ========
@@ -89,43 +197,54 @@ if [%INTERNAL_BUILD%] == [1] (
 )
 
 rem   ------ NSPR ------
-set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.7.3
+set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.8
 if NOT EXIST "%LIBROOT%\nspr" (
+    echo on
+    echo mkdir "%LIBROOT%\nspr"
     mkdir "%LIBROOT%\nspr"
+    echo mkdir "%LIBROOT%\nspr\include"
     mkdir "%LIBROOT%\nspr\include"
+    echo pushd "%LIBROOT%\nspr"
     pushd "%LIBROOT%\nspr"
     echo %NSPR_LOCATION%/%FLAVOR% > version.txt
+    echo %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
     %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
+    echo %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
     %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
-    %UNZIP% mdbinary.jar
+    echo %UZCMD% mdbinary.jar
+    %UZCMD% mdbinary.jar
+    echo cd include
     cd include
-    %UNZIP% ..\mdheader.jar
+    echo %UZCMD% ..\mdheader.jar
+    %UZCMD% ..\mdheader.jar
+    echo popd
     popd
+    echo off
 )
 
 rem   ------ NSS ------
-set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_2_RTM
+set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_4_RTM
 if NOT EXIST "%LIBROOT%\nss" (
     mkdir "%LIBROOT%\nss"
     mkdir "%LIBROOT%\nss\include"
     pushd "%LIBROOT%\nss"
     echo %NSS_LOCATION%/%FLAVOR% > version.txt
     %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nss\mdbinary.jar"
-    %DOWNLOAD% %NSS_LOCATION%/include/xpheader.jar "%LIBROOT%\nss\xpheader.jar"
-    %UNZIP% mdbinary.jar
+    %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/include/xpheader.jar "%LIBROOT%\nss\xpheader.jar"
+    %UZCMD% mdbinary.jar
     cd include
-    %UNZIP% ..\xpheader.jar
+    %UZCMD% ..\xpheader.jar
     popd
 )
 
 rem   ------ LDAPSDK ------
-set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.5/20090128.1
+set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.6/20091019.1
 if NOT EXIST "%LIBROOT%\ldapsdk" (
     mkdir "%LIBROOT%\ldapsdk"
     pushd "%LIBROOT%\ldapsdk"
     echo %LDAPSDK_LOCATION%/%FLAVOR% > version.txt
-    %DOWNLOAD% %LDAPSDK_LOCATION%/%FLAVOR%/ldapcsdk.zip "%LIBROOT%\ldapsdk\ldapcsdk.zip"
-    %UNZIP% ldapcsdk.zip
+    %DOWNLOAD% %LDAPSDK_LOCATION%/%FLAVOR%/mozldap_%FLV%.zip "%LIBROOT%\ldapsdk\mozldap_%FLV%.zip"
+    %UZCMD% mozldap_%FLV%.zip
     popd
 )
 
@@ -136,7 +255,7 @@ if NOT EXIST "%WIXDIR%" (
     pushd "%WIXDIR%"
     echo %WIX_LOCATION% > version.txt
     %DOWNLOAD% %WIX_LOCATION%/wix-%WIXVER%.zip "%WIXDIR%\wix-%WIXVER%.zip"
-    %UNZIP% wix-%WIXVER%.zip
+    %UZCMD% wix-%WIXVER%.zip
     popd
 )
 
@@ -146,7 +265,7 @@ pushd "%CD%"
 
 rem ======== Build ========
 rem   ------ Set Build Paths ------
-set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\include;%LIBROOT%\nspr\include;%LIBROOT%\nss\include
+set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\public\ldap;%LIBROOT%\nspr\include;%LIBROOT%\nss\include
 set LIB=%LIB%;%LIBROOT%\ldapsdk\lib;%LIBROOT%\nspr\lib;%LIBROOT%\nss\lib
 
 rem   ------ PassSync ------
@@ -184,11 +303,13 @@ rem ======== Package ========
 cd ..
 echo -------- Beginning Packaging --------
 
-nmake /nologo CFG=%CFG1% /f package.mak
+nmake /nologo CFG=%CFG1% USE64=%USE64% PLATFORM=%PLATFORM% "BRAND=%BRAND%" BRANDNOSPACE=%BRANDNOSPACE%  "VENDOR=%VENDOR%" VCREDISTDLL=%vcredistdll% VCREDISTDLLNAME=%vcredistdllname% VERSION=%VERSION% /f package.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
-if EXIST "%PKGDIR%\PassSync.msi" (
-    copy /Y "%PKGDIR%\PassSync.msi" "%DISTDIR%"
+set PKGNAME=%BRANDNOSPACE%-PassSync-%VERSION%-%PLATFORM%.msi
+
+if EXIST "%PKGDIR%\%PKGNAME%" (
+    copy /Y "%PKGDIR%\%PKGNAME%" "%DISTDIR%"
     set /a OK=%OK% + %ERRORLEVEL%
 )
 
