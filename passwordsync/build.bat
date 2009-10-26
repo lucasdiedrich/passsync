@@ -76,6 +76,7 @@ if [%CPU%] == [AMD64] (
   set FLAG64=_64
   set USE64=1
   set PLATFORM=x86_64
+  set LDAPDATE=20091019.1
 if [%BUILD_DEBUG%] == [optimize] (
     set OPTDBG=_OPT
     set CFG1="passsync - Win64 Release"
@@ -94,6 +95,7 @@ if [%BUILD_DEBUG%] == [optimize] (
 )
 ) else (
   set PLATFORM=i386
+  set LDAPDATE=20091017.1
 if [%BUILD_DEBUG%] == [optimize] (
     set OPTDBG=_OPT
     set CFG1="passsync - Win32 Release"
@@ -238,7 +240,7 @@ if NOT EXIST "%LIBROOT%\nss" (
 )
 
 rem   ------ LDAPSDK ------
-set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.6/20091019.1
+set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.6/%LDAPDATE%
 if NOT EXIST "%LIBROOT%\ldapsdk" (
     mkdir "%LIBROOT%\ldapsdk"
     pushd "%LIBROOT%\ldapsdk"
