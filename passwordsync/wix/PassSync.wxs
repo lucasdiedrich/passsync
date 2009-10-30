@@ -36,7 +36,7 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 
-<?define Property_ProductCode = "D9C09AE2-F504-4875-8C7E-70BF2D791CEB" ?>
+<?define Property_ProductCode = "53b6d41b-c9a3-4b87-8b5e-06ec25bb9526" ?>
 <?if $(var.USE64)=1 ?>
     <?define Property_SysFolder = "System64Folder" ?>
     <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>
@@ -100,10 +100,97 @@
                       Name="Search Base" Type="raw" />
     </Property>
 
+    <Property Id="OLDINSTALLDIR">
+      <RegistrySearch Id="OldInstPath" Root="HKLM" Key="Software\PasswordSync"
+                      Name="Install Path" Type="raw" />
+    </Property>
+
     <CustomAction Id='AlreadyUpdated' Error='[ProductName] [ProductVersion] is already installed.' />
     <CustomAction Id='NoDowngrade' Error='A later version of [ProductName] is already installed.' />
+    <CustomAction Id='Migrate.SetProperty' Property="Migrate" Value="[INSTALLDIR];[OLDINSTALLDIR]" />
+    <CustomAction Id='Migrate' Script='vbscript' Execute='deferred'>
+      <![CDATA[
+      On error resume next
+      set rec = Session.installer.CreateRecord(1)
+      msgtype = &H04000000
+      rec.StringData(1) = "Migrate: Begin"
+      Session.Message msgtype, rec
+      cad = Session.Property("CustomActionData")
+      rec.StringData(1) = "Migrate: CustomActionData=" & cad
+      Session.Message msgtype, rec
+      ary = Split(cad, ";")
+      newdir = ary(0)
+      olddir = ary(1)
+      rec.StringData(1) = "Migrate: migrating security and log files from [" & olddir & "] to [" & newdir & "]"
+      Session.Message msgtype, rec
+      testdir = "C:\Program Files"
+      Dim fso
+      Set fso = CreateObject("Scripting.FileSystemObject")
+      ' for debugging
+      If testdir <> Null And Not IsEmpty(testdir) Then
+        Set parfolder = fso.GetFolder(testdir)
+        rec.StringData(1) = "Migrate: listing contents of " & testdir & " parent folder " & parfolder.name
+        Session.Message msgtype, rec
+        For Each ff in parfolder.Files
+          rec.StringData(1) = "Migrate: file=" & ff.name
+          Session.Message msgtype, rec
+        Next
+        For Each fl in parfolder.SubFolder
+          rec.StringData(1) = "Migrate: folder=" & fl.name
+          Session.Message msgtype, rec
+        Next
+      End If
+      ' for debugging
+
+      If olddir = Null Or IsEmpty(olddir) Then
+        rec.StringData(1) = "Migrate: There is no old installation - nothing to migrate " & olddir
+        Session.Message &H04000000, rec
+        ' nothing to do
+        WScript.Quit 0 ' quit seems not to be working
+      ElseIf olddir = newdir Then
+        rec.StringData(1) = "Migrate: The old and new installation directories are the same: " & olddir & ": nothing to migrate"
+        Session.Message msgtype, rec
+        ' nothing to do
+        WScript.Quit 0
+      ElseIf not fso.FolderExists(olddir) Then
+        rec.StringData(1) = "Migrate: Cannot migrate because source folder " & olddir & " does not exist"
+        Session.Message msgtype, rec
+        WScript.Quit 0
+      ElseIf not fso.FolderExists(newdir) Then
+        rec.StringData(1) = "Migrate: Error: Cannot migrate because destination folder " & newdir & " does not exist"
+        Session.Message msgtype, rec
+        WScript.Quit 1
+      Else
+        rec.StringData(1) = "Migrate: Copying files from " & olddir & " to " & newdir
+        Session.Message msgtype, rec
+        set srcfl = fso.GetFolder(olddir)
+        For Each fi In srcfl.Files
+          newfi = newdir & fi.name
+          If fso.FileExists(newfi) Then
+            rec.StringData(1) = "Migrate: skipping file " & newfi & " because it already exists"
+            Session.Message msgtype, rec
+          Else
+            rec.StringData(1) = "Migrate: copying file " & fi.name & " to " & newdir
+            Session.Message msgtype, rec
+            Err.Clear
+            fi.Copy(newdir & fi.name)
+            If Err <> 0 Then
+              rec.StringData(1) = "Migrate: error copying file " & Err.Number & " " & Err.Description
+              Session.Message msgtype, rec
+            End If
+          End If
+        Next
+      End If
+      Set fso = Nothing
+      rec.StringData(1) = "Migrate: End"
+      Session.Message msgtype, rec
+      ]]>
+    </CustomAction>
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
+      <!-- the VC runtime redist package -->
+      <Merge Id='CRT' Language='0' src='$(var.CRTMSM)' DiskId='1'/>
+      <Merge Id='PolicyCRT' Language='0' src='$(var.POLICYCRTMSM)' DiskId='1'/>
 
       <Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
         <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D' Win64='$(var.Property_Win64)'>
@@ -173,7 +260,7 @@
 
 		  <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
 		   Interactive='yes' Start='auto' Vital='yes' ErrorControl='normal'/>
-		  <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='no'/>
+		  <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='yes'/>
 
 		  <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
 		  <Registry Id='HostName' Root='HKLM' Key='Software\PasswordSync' Name='Host Name' Action='write' Type='string' Value='[HOSTNAME]' />
@@ -217,11 +304,6 @@
               <File Id='NSLDIF' LongName='nsldif32v60.dll' Name='nsldif.dll' DiskId='1' src='nsldif32v60.dll' Vital='yes' />
             </Component>
 
-            <!-- mozldap requires msvc redist runtime dll -->
-            <Component Id='NSLDAPmsvcrLibrary' Guid='C0E8DA53-B61A-4b60-8886-8549C29CACE7' Win64='$(var.Property_Win64)'>
-              <File Id='NSLDAPmsvcr' LongName='$(var.VCREDISTDLLNAME)' Name='$(var.VCREDISTDLLNAME)' DiskId='1' src='$(var.VCREDISTDLLNAME)' Vital='yes' />
-            </Component>
-
           </Directory>
       </Directory>
       <Directory Id="DesktopFolder" Name="Desktop" />
@@ -238,7 +320,6 @@
 	  <ComponentRef Id='NSLDAPSSLLibrary' />
 	  <ComponentRef Id='NSLDAPPRLibrary' />
 	  <ComponentRef Id='NSLDIFLibrary' />
-          <ComponentRef Id='NSLDAPmsvcrLibrary' />
 	  <ComponentRef Id='NSPRLibrary' />
 	  <ComponentRef Id='NSPRpldsLibrary' />
 	  <ComponentRef Id='NSPRplcLibrary' />
@@ -253,6 +334,10 @@
 	  <ComponentRef Id='NSSrootcertsLibrary' />
 	  <ComponentRef Id='NSScertutil' />
 	  <ComponentRef Id='NSSpk12util' />
+      </Feature>
+      <Feature Id='CRT_WinSXS' Title='CRT WinSXS' AllowAdvertise="no" Display="hidden" Level='1'>
+          <MergeRef Id='CRT' />
+          <MergeRef Id='PolicyCRT' />
       </Feature>
     </Feature>
 
@@ -1379,6 +1464,8 @@
 
     <InstallExecuteSequence>
       <Custom Action='NoDowngrade' After='FindRelatedProducts'>NEWERFOUND</Custom>
+      <Custom Action='Migrate.SetProperty' Before='Migrate' />
+      <Custom Action='Migrate' Before='StartServices' ><![CDATA[OLDINSTALLDIR AND (OLDINSTALLDIR <> INSTALLDIR)]]></Custom>
       <RemoveExistingProducts After='InstallFinalize' />
     </InstallExecuteSequence>
 

@@ -51,11 +51,10 @@ LAYOUT :
 	copy /Y "$(LIBROOT)\nss\lib\*.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\certutil.exe" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\bin\pk12util.exe" "$(PKGDIR)"
-	copy /Y "$(VCREDISTDLL)" "$(PKGDIR)"
 
 PassSync.msi : LAYOUT
 	if not exist "$(PKGDIR)\Binary" mkdir "$(PKGDIR)\Binary"
 	copy /Y wix\Binary "$(PKGDIR)\Binary"
 	cd "$(PKGDIR)"
-	"$(CANDLE)" -dVERSION=$(VERSION) -dUSE64=$(USE64) "-dBRAND=$(BRAND)" "-dVENDOR=$(VENDOR)" "-dVCREDISTDLLNAME=$(VCREDISTDLLNAME)" "$(WXSDIR)\PassSync.wxs"
+	"$(CANDLE)" -trace -v0 "-dCRTMSM=$(CRTMSM)" "-dPOLICYCRTMSM=$(POLICYCRTMSM)" -dVERSION=$(VERSION) -dUSE64=$(USE64) "-dBRAND=$(BRAND)" "-dVENDOR=$(VENDOR)" "$(WXSDIR)\PassSync.wxs"
 	"$(LIGHT)" PassSync.wixobj -out $(BRANDNOSPACE)-PassSync-$(VERSION)-$(PLATFORM).msi

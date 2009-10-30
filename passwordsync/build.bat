@@ -77,6 +77,7 @@ if [%CPU%] == [AMD64] (
   set USE64=1
   set PLATFORM=x86_64
   set LDAPDATE=20091019.1
+  set MSMPLAT=x64
 if [%BUILD_DEBUG%] == [optimize] (
     set OPTDBG=_OPT
     set CFG1="passsync - Win64 Release"
@@ -96,6 +97,7 @@ if [%BUILD_DEBUG%] == [optimize] (
 ) else (
   set PLATFORM=i386
   set LDAPDATE=20091017.1
+  set MSMPLAT=x86
 if [%BUILD_DEBUG%] == [optimize] (
     set OPTDBG=_OPT
     set CFG1="passsync - Win32 Release"
@@ -118,38 +120,30 @@ set FLAVOR=WINNT%WINVER%%FLAG64%%OPTDBG%.OBJ
 
 echo Build flavor is %FLAVOR%
 
-REM this next part assumes you have set up the environment by running
-REM one of the start-msvcxx.bat or SetEnv.cmd batch files/scripts
-REM provided with MS Visual C++, Visual Studio, or SDK - those batch
-REM files set certain environment variables we use to figure out
-REM where the redistributable files are that we need to package
-REM we will pass this information down into package.mak and the .wxs
-if ["%VCRoot%"] == [] (
-    if ["%VCINSTALLDIR%"] == [] (
-        echo Error: could not find the location of the MSVC redistributable package
-        echo please make sure either VCRoot or VCINSTALLDIR is set to the
-        echo base VC location e.g.
-        echo "set VCRoot=C:\Program Files (x86)\Microsoft Visual Studio 9.0\VC\"
-        exit 1
-    ) else (
-        set vcredistroot="%VCINSTALLDIR%redist\%platdir%"
-    )
-) else (
-    set vcredistroot="%VCRoot%redist\%platdir%"
+REM Look for the merge module containing the redistributable
+REM runtime for our platform
+
+REM on 64-bit platforms
+for %%i in ("%COMMONPROGRAMFILES(X86)%\Merge Modules\"Microsoft_*_CRT_*%MSMPLAT%.msm) do set CRTMSM="%%i"
+for %%i in ("%COMMONPROGRAMFILES(X86)%\Merge Modules\"policy_*Microsoft_*_CRT_*%MSMPLAT%.msm) do set POLICYCRTMSM="%%i"
+
+REM on 32-bit platforms
+for %%i in ("%COMMONPROGRAMFILES%\Merge Modules\"Microsoft_*_CRT_*%MSMPLAT%.msm) do set CRTMSM="%%i"
+for %%i in ("%COMMONPROGRAMFILES%\Merge Modules\"policy_*Microsoft_*_CRT_*%MSMPLAT%.msm) do set POLICYCRTMSM="%%i"
+
+if not defined CRTMSM (
+   if not ["%MSSDK%"] == [] (
+      set CRTMSM="%MSSDK%"\Redist\VC\microsoft.vcxx.crt.%MSMPLAT%_msm.msm
+      set POLICYCRTMSM="%MSSDK%"\Redist\VC\policy.x.xx.microsoft.vcxx.crt.%MSMPLAT%_msm.msm
+   )
 )
 
-REM figure out which version we're using
-if exist "%vcredistroot%\Microsoft.VC71.%subdir%\msvcr71%suf%.dll" (
-   set vcredistdllname=msvcr71%suf%.dll
-   set vcredistdll=%vcredistroot%\Microsoft.VC71.%subdir%\msvcr71%suf%.dll
-)
-if exist "%vcredistroot%\Microsoft.VC80.%subdir%\msvcr80%suf%.dll" (
-   set vcredistdllname=msvcr80%suf%.dll
-   set vcredistdll=%vcredistroot%\Microsoft.VC80.%subdir%\msvcr80%suf%.dll
-)
-if exist "%vcredistroot%\Microsoft.VC90.%subdir%\msvcr90%suf%.dll" (
-   set vcredistdllname=msvcr90%suf%.dll
-   set vcredistdll=%vcredistroot%\Microsoft.VC90.%subdir%\msvcr90%suf%.dll
+if not defined CRTMSM (
+   echo ERROR: could not find the merge modules for the Visual C++
+   echo runtime side by side assemblies - they should be provided
+   echo with the Visual Studio C++ and/or the Windows SDK
+   echo cannot continue
+   exit 1
 )
 
 if [%BRAND%] == [] (
@@ -305,7 +299,7 @@ rem ======== Package ========
 cd ..
 echo -------- Beginning Packaging --------
 
-nmake /nologo CFG=%CFG1% USE64=%USE64% PLATFORM=%PLATFORM% "BRAND=%BRAND%" BRANDNOSPACE=%BRANDNOSPACE%  "VENDOR=%VENDOR%" VCREDISTDLL=%vcredistdll% VCREDISTDLLNAME=%vcredistdllname% VERSION=%VERSION% /f package.mak
+nmake /nologo CFG=%CFG1% USE64=%USE64% PLATFORM=%PLATFORM% "BRAND=%BRAND%" BRANDNOSPACE=%BRANDNOSPACE%  "VENDOR=%VENDOR%" CRTMSM=%CRTMSM% POLICYCRTMSM=%POLICYCRTMSM% VERSION=%VERSION% /f package.mak
 set /a OK=%OK% + %ERRORLEVEL%
 
 set PKGNAME=%BRANDNOSPACE%-PassSync-%VERSION%-%PLATFORM%.msi
