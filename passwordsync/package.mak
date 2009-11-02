@@ -56,5 +56,5 @@ PassSync.msi : LAYOUT
 	if not exist "$(PKGDIR)\Binary" mkdir "$(PKGDIR)\Binary"
 	copy /Y wix\Binary "$(PKGDIR)\Binary"
 	cd "$(PKGDIR)"
-	"$(CANDLE)" -trace -v0 "-dCRTMSM=$(CRTMSM)" "-dPOLICYCRTMSM=$(POLICYCRTMSM)" -dVERSION=$(VERSION) -dUSE64=$(USE64) "-dBRAND=$(BRAND)" "-dVENDOR=$(VENDOR)" "$(WXSDIR)\PassSync.wxs"
+	"$(CANDLE)" "-dCRTMSM=$(CRTMSM)" "-dPOLICYCRTMSM=$(POLICYCRTMSM)" -dVERSION=$(VERSION) -dUSE64=$(USE64) "-dBRAND=$(BRAND)" "-dVENDOR=$(VENDOR)" "$(WXSDIR)\PassSync.wxs"
 	"$(LIGHT)" PassSync.wixobj -out $(BRANDNOSPACE)-PassSync-$(VERSION)-$(PLATFORM).msi

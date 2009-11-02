@@ -146,10 +146,10 @@ if not defined CRTMSM (
    exit 1
 )
 
-if [%BRAND%] == [] (
+if ["%BRAND%"] == [""] (
    set BRAND=389
 )
-if [%VENDOR%] == [] (
+if ["%VENDOR%"] == [""] (
    set VENDOR=389 Project
 )
 if [%BRANDNOSPACE%] == [] (
