@@ -169,7 +169,7 @@
           If fso.FileExists(newfi) Then
             rec.StringData(1) = "Migrate: skipping file " & newfi & " because it already exists"
             Session.Message msgtype, rec
-          Else
+          ElseIf Right(newfi, 3) = ".db" Or Right(newfi, 4) = ".log" Then
             rec.StringData(1) = "Migrate: copying file " & fi.name & " to " & newdir
             Session.Message msgtype, rec
             Err.Clear
@@ -178,6 +178,9 @@
               rec.StringData(1) = "Migrate: error copying file " & Err.Number & " " & Err.Description
               Session.Message msgtype, rec
             End If
+          Else
+            rec.StringData(1) = "Migrate: skipping file " & newfi
+            Session.Message msgtype, rec
           End If
         Next
       End If
@@ -195,6 +198,8 @@
       <Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
         <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D' Win64='$(var.Property_Win64)'>
           <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' src='passhook.dll' Vital='yes' />
+          <RemoveFile Id='PasshookDat' On='uninstall' Name='passhook.dat'/>
+          <RemoveFile Id='PasshookLog' On='uninstall' Name='passhook.log'/>
         </Component>
 
         <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5' Win64='$(var.Property_Win64)'>
@@ -250,30 +255,23 @@
             <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471' Win64='$(var.Property_Win64)'>
               <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
                 src='passsync.exe' Vital='yes' />
-            <!--  <Shortcut Id="startmenuPassSync" Directory="ProgramMenuDir" Name="PassSync" 
-                LongName="Password Synchronization" Target="MainProgram" WorkingDirectory='INSTALLDIR'
-                Icon="PassSync.exe" IconIndex="0" />
-                <Shortcut Id="desktopPassSync" Directory="DesktopFolder" Name="PassSync"
-                LongName="Password Synchronization" Target="MainProgram" WorkingDirectory='INSTALLDIR'
-                Icon="PassSync.exe" IconIndex="0" />
-            -->
+	      <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
+		              Interactive='yes' Start='auto' Vital='no' ErrorControl='normal'/>
+	      <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='yes'/>
 
-		  <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
-		   Interactive='yes' Start='auto' Vital='yes' ErrorControl='normal'/>
-		  <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='yes'/>
-
-		  <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
-		  <Registry Id='HostName' Root='HKLM' Key='Software\PasswordSync' Name='Host Name' Action='write' Type='string' Value='[HOSTNAME]' />
-		  <Registry Id='PortNum' Root='HKLM' Key='Software\PasswordSync' Name='Port Number' Action='write' Type='string' Value='[PORTNUM]' />
-		  <Registry Id='UserName' Root='HKLM' Key='Software\PasswordSync' Name='User Name' Action='write' Type='string' Value='[USER]' />
-		  <Registry Id='Password' Root='HKLM' Key='Software\PasswordSync' Name='Password' Action='write' Type='string' Value='[PASSWORD]' />
-		  <Registry Id='Certtkn' Root='HKLM' Key='Software\PasswordSync' Name='Cert Token' Action='write' Type='string' Value='[CERTTOKEN]' />
-		  <Registry Id='SrchBase' Root='HKLM' Key='Software\PasswordSync' Name='Search Base' Action='write' Type='string' Value='[SRCHBASE]' />
-		  <Registry Id='UserFld' Root='HKLM' Key='Software\PasswordSync' Name='User Name Field' Action='write' Type='string' Value='ntuserdomainid' />
-		  <Registry Id='PassFld' Root='HKLM' Key='Software\PasswordSync' Name='Password Field' Action='write' Type='string' Value='userpassword' />
-                  <Registry Id='LogLevel' Root='HKLM' Key='Software\PasswordSync' Name='Log Level' Action='write' Type='string' Value='0' />
-		  <Registry Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' Name='Notification Packages' Action='append'
-		   Type='multiString' Value='passhook'/>
+	      <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
+	      <Registry Id='HostName' Root='HKLM' Key='Software\PasswordSync' Name='Host Name' Action='write' Type='string' Value='[HOSTNAME]' />
+	      <Registry Id='PortNum' Root='HKLM' Key='Software\PasswordSync' Name='Port Number' Action='write' Type='string' Value='[PORTNUM]' />
+	      <Registry Id='UserName' Root='HKLM' Key='Software\PasswordSync' Name='User Name' Action='write' Type='string' Value='[USER]' />
+	      <Registry Id='Password' Root='HKLM' Key='Software\PasswordSync' Name='Password' Action='write' Type='string' Value='[PASSWORD]' />
+	      <Registry Id='Certtkn' Root='HKLM' Key='Software\PasswordSync' Name='Cert Token' Action='write' Type='string' Value='[CERTTOKEN]' />
+	      <Registry Id='SrchBase' Root='HKLM' Key='Software\PasswordSync' Name='Search Base' Action='write' Type='string' Value='[SRCHBASE]' />
+	      <Registry Id='UserFld' Root='HKLM' Key='Software\PasswordSync' Name='User Name Field' Action='write' Type='string' Value='ntuserdomainid' />
+	      <Registry Id='PassFld' Root='HKLM' Key='Software\PasswordSync' Name='Password Field' Action='write' Type='string' Value='userpassword' />
+	      <Registry Id='LogLevel' Root='HKLM' Key='Software\PasswordSync' Name='Log Level' Action='write' Type='string' Value='0' />
+	      <Registry Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' Name='Notification Packages' Action='append' Type='multiString' Value='passhook'/>
+	      <RemoveFile Id='NSSDBFiles' On='uninstall' Name='*.db'/>
+	      <RemoveFile Id='PassSyncLog' On='uninstall' Name='*.log'/>
             </Component>
 
             <Component Id='NSScertutil' Guid='EE2FB62B-E104-4049-8A6D-B96D4524FC29' Win64='$(var.Property_Win64)'>
