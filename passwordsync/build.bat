@@ -156,7 +156,7 @@ if [%BRANDNOSPACE%] == [] (
    set BRANDNOSPACE=389
 )
 if [%VERSION%] == [] (
-   set VERSION=1.1.1
+   set VERSION=1.1.2
 )
 
 rem ======== Set Various Build Directories ========

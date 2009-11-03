@@ -36,7 +36,7 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 
-<?define Property_ProductCode = "53b6d41b-c9a3-4b87-8b5e-06ec25bb9526" ?>
+<?define Property_ProductCode = "297a7225-04cd-4727-98ee-ea36a3d73ea2" ?>
 <?if $(var.USE64)=1 ?>
     <?define Property_SysFolder = "System64Folder" ?>
     <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>
@@ -77,32 +77,32 @@
     <Property Id='DiskPrompt' Value="Password Sync Installation [1]" />
     <Property Id="HOSTNAME">
       <RegistrySearch Id="HostName" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Host Name" Type="raw" />
+                      Name="Host Name" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="PORTNUM">
       <RegistrySearch Id="PortNum" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Port Number" Type="raw" />
+                      Name="Port Number" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="USER">
       <RegistrySearch Id="UserName" Root="HKLM" Key="Software\PasswordSync"
-                      Name="User Name" Type="raw" />
+                      Name="User Name" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="PASSWORD">
       <RegistrySearch Id="Password" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Password" Type="raw" />
+                      Name="Password" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="CERTTOKEN">
       <RegistrySearch Id="Certtkn" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Cert Token" Type="raw" />
+                      Name="Cert Token" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="SRCHBASE">
       <RegistrySearch Id="SrchBase" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Search Base" Type="raw" />
+                      Name="Search Base" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
 
     <Property Id="OLDINSTALLDIR">
       <RegistrySearch Id="OldInstPath" Root="HKLM" Key="Software\PasswordSync"
-                      Name="Install Path" Type="raw" />
+                      Name="Install Path" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
 
     <CustomAction Id='AlreadyUpdated' Error='[ProductName] [ProductVersion] is already installed.' />
@@ -256,7 +256,7 @@
               <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
                 src='passsync.exe' Vital='yes' />
 	      <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
-		              Interactive='yes' Start='auto' Vital='no' ErrorControl='normal'/>
+		              Interactive='yes' Start='auto' Vital='yes' ErrorControl='ignore'/>
 	      <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='yes'/>
 
 	      <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
