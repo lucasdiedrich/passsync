@@ -36,7 +36,7 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 
-<?define Property_ProductCode = "297a7225-04cd-4727-98ee-ea36a3d73ea2" ?>
+<?define Property_ProductCode = "C2776A52-8A62-4B52-9D6F-F35F24CA3AEC" ?>
 <?if $(var.USE64)=1 ?>
     <?define Property_SysFolder = "System64Folder" ?>
     <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>
@@ -256,8 +256,8 @@
               <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
                 src='passsync.exe' Vital='yes' />
 	      <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
-		              Interactive='yes' Start='auto' Vital='yes' ErrorControl='ignore'/>
-	      <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='yes'/>
+		              Interactive='no' Start='auto' Vital='yes' ErrorControl='ignore'/>
+	      <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='no'/>
 
 	      <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
 	      <Registry Id='HostName' Root='HKLM' Key='Software\PasswordSync' Name='Host Name' Action='write' Type='string' Value='[HOSTNAME]' />
