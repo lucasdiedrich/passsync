@@ -36,7 +36,7 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 
-<?define Property_ProductCode = "C2776A52-8A62-4B52-9D6F-F35F24CA3AEC" ?>
+<?define Property_ProductCode = "ffac8b42-c505-4046-9028-f44f6353668a" ?>
 <?if $(var.USE64)=1 ?>
     <?define Property_SysFolder = "System64Folder" ?>
     <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>

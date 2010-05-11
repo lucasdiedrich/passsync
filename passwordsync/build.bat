@@ -156,7 +156,7 @@ if [%BRANDNOSPACE%] == [] (
    set BRANDNOSPACE=389
 )
 if [%VERSION%] == [] (
-   set VERSION=1.1.3
+   set VERSION=1.1.4
 )
 
 rem ======== Set Various Build Directories ========
@@ -193,7 +193,7 @@ if [%INTERNAL_BUILD%] == [1] (
 )
 
 rem   ------ NSPR ------
-set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.8
+set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.8.4
 if NOT EXIST "%LIBROOT%\nspr" (
     echo on
     echo mkdir "%LIBROOT%\nspr"
@@ -219,7 +219,7 @@ if NOT EXIST "%LIBROOT%\nspr" (
 )
 
 rem   ------ NSS ------
-set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_4_RTM
+set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_6_RTM
 if NOT EXIST "%LIBROOT%\nss" (
     mkdir "%LIBROOT%\nss"
     mkdir "%LIBROOT%\nss\include"
