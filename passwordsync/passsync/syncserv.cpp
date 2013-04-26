@@ -284,7 +284,6 @@ void PassSyncService::Run()
 		}
 
 		SyncPasswords();
-		UpdateBackoff();
 
 		ResetEvent(passhookEventHandle);
 	}
@@ -390,6 +389,9 @@ int PassSyncService::SyncPasswords()
 			timeStamp(&outLog);
 			outLog << "Password list has " << passInfoList.size() << " entries" << endl;
 		}
+
+		// Update backoff here so we abondon any old passwords before sending them.
+		UpdateBackoff();
 	}
 
 	if(Connect(&mainLdapConnection, ldapAuthUsername, ldapAuthPassword) < 0)
