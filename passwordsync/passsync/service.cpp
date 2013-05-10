@@ -40,6 +40,7 @@
 
 #include <windows.h>
 #include <iostream>
+#include <fstream>
 #include "syncserv.h"
 #include "dssynchmsg.h"
 // syncserv.h
@@ -113,9 +114,14 @@ static void usage()
 #define OPT_START_DIRECT 4
 
 /////////////////////////////////////////////////////////////////
-static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
+static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[], fstream *outLog)
 {
 	int result = OPT_START;  // Default is to start the service
+
+	if(outLog->is_open()) {
+		timeStamp(outLog);
+		*outLog << "==> checkOptions(" << pSynch->m_szServiceName << ")" << endl;
+	}
 
 	// Check first for uninstall, since we shouldn't do anything else if set
 	int i;
@@ -139,6 +145,10 @@ static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
 			// Terminate after completion
 			result = OPT_TERMINATE;
 			argc = 1;
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "<== checkOption uninstall" << endl;
+			}
 			return result;
 		}
 	}
@@ -166,12 +176,20 @@ static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
 		{
 			result = OPT_APP;
 			bLocal = TRUE;
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "checkOptions: start as app (-a)" << endl;
+			}
 		}
 		// Start service
 		else if ( 'x' == opt )
 		{
 			result = OPT_START_DIRECT;
 			bLocal = TRUE;
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "checkOptions: start service (-x)" << endl;
+			}
 		}
 /*
 		// Command port
@@ -194,13 +212,25 @@ static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
 				printf( "%S is already installed\n", pSynch->m_szServiceName );
 			else
 			{
+				if(outLog->is_open()) {
+					timeStamp(outLog);
+					*outLog << "checkOptions: Installing: " << pSynch->m_szServiceName << endl;
+				}
 				// Try and install the copy that's running
 				if ( pSynch->Install() )
 				{
+					if(outLog->is_open()) {
+						timeStamp(outLog);
+						*outLog << "checkOptions: Installed. " << endl;
+					}
 					printf( "%S installed\n", pSynch->m_szServiceName );
 				}
 				else
 				{
+					if(outLog->is_open()) {
+						timeStamp(outLog);
+						*outLog << "checkOptions: Failed to install. Error %d" << GetLastError() << endl;
+					}
 					printf( "%S failed to install. Error %d\n",
 						pSynch->m_szServiceName, GetLastError() );
 				}
@@ -211,18 +241,30 @@ static int checkOptions( PassSyncService *pSynch, int& argc, char *argv[] )
 		// Terminate after completion
 		else if ( 'n' == opt )
 		{
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "checkOptions: Synchronize from NT to DS (-n): " << pSynch->m_szServiceName << endl;
+			}
 			result = OPT_NONE;
 		}
 		// Synchronize from DS to NT
 		// Terminate after completion
 		else if ( 's' == opt )
 		{
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "checkOptions: Synchronize from DS to NT (-s): " << pSynch->m_szServiceName << endl;
+			}
 			result = OPT_NONE;
 		}
 		// Synchronize both ways
 		// Terminate after completion
 		else if ( 'r' == opt )
 		{
+			if(outLog->is_open()) {
+				timeStamp(outLog);
+				*outLog << "checkOptions: Synchronize both ways (-s): " << pSynch->m_szServiceName << endl;
+			}
 			result = OPT_NONE;
 		}
 		if ( bLocal )
@@ -277,13 +319,24 @@ static int initialize( PassSyncService *pSynch, int argc, char *argv[] )
 int
 main( int argc, char *argv[] )
 {
+	fstream outLog;
+
+#if 0
+	// Debug log
+	outLog.open("PassSyncService.log", ios::out | ios::app);
+#endif
+
 	// Global single instance
 	PassSyncService theSynch("Password Synchronization Service");
 
 	// Process special install/uninstall switches; this does install/uninstall
 	// It returns non-zero to actually start the service
-	int nStart = checkOptions( &theSynch, argc, argv );
+	int nStart = checkOptions( &theSynch, argc, argv, &outLog );
 
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "checkOptions returned: " << nStart << endl;
+	}
 	// Set up configuration
 	if ( OPT_TERMINATE != nStart )
 		initialize( &theSynch, argc, argv );
@@ -323,7 +376,9 @@ main( int argc, char *argv[] )
 	}
 
 	exit(theSynch.m_Status.dwWin32ExitCode);
-
+	if(outLog.is_open()) {
+		outLog.close();
+	}
 
 	////////// That's it //////
 	return 0;

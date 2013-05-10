@@ -345,10 +345,10 @@ BOOL CNTService::StartService()
     };
 
     DebugMsg(_T("Calling StartServiceCtrlDispatcher()"));
-	// Fails if started from command line, but StartService
-	// works any way
+    // Fails if started from command line, but StartService
+    // works any way
     BOOL b = ::StartServiceCtrlDispatcher(st);
-	DWORD err = GetLastError();
+    DWORD err = GetLastError();
     DebugMsg(_T("Returned from StartServiceCtrlDispatcher()"));
     return b;
 }

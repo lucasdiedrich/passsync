@@ -69,6 +69,12 @@ int saveSet(PASS_INFO_LIST* passInfoList, char* filename)
 	int cipherTextLen;
 	int resultTextLen = 0;
 	int pairCount = passInfoList->size();
+	fstream outLog;
+
+#if 0
+	// Debug log
+	outLog.open("passhand.log", ios::out | ios::app);
+#endif
 
 	// Write usernames and passwords to a strstream
 	plainTextStream.write((char*)&pairCount, sizeof(pairCount));
@@ -101,6 +107,11 @@ int saveSet(PASS_INFO_LIST* passInfoList, char* filename)
 		goto exit;
 	}
 
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "==> saveSet(" << filename << ")" << endl;
+	}
+
 	// Write cipher text to file
 	outFile.open(filename, ios::out | ios::binary);
 	if(!outFile.is_open())
@@ -110,11 +121,18 @@ int saveSet(PASS_INFO_LIST* passInfoList, char* filename)
 	}
 	outFile.write(cipherTextBuf, resultTextLen);
 	outFile.close();
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "<== saveSet(" << filename << ")" << endl;
+	}
 
 exit:
 	// We need to unfreeze plainTextStream so memory gets freed by the destructor
 	plainTextStream.rdbuf()->freeze(false);
 	free(cipherTextBuf);
+	if(outLog.is_open()) {
+		outLog.close();
+	}
 	return result;
 }
 
@@ -133,12 +151,26 @@ int loadSet(PASS_INFO_LIST* passInfoList, char* filename)
 	int cipherTextLen = 0;
 	int resultTextLen = 0;
 	int pairCount = 0;
-	errno_t err = 0;
+	DWORD err = 0;
+	fstream outLog;
 
+#if 0
+	// Debug log
+	outLog.open("passhand.log", ios::out | ios::app);
+#endif
+
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "==> loadSet(" << filename << ")" << endl;
+	}
 	// Read in cipher text from file
 	inFile.open(filename, ios::in | ios::binary);
-	_get_errno(&err);
-	if (err == ENOENT) { // file does not exist - ok
+	err = GetLastError();
+	if (err == ERROR_FILE_NOT_FOUND) { // file does not exist - ok
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << "loadSet: Failed to open " << filename << ", Error: " << err << endl;
+		}
 		result = 1;
 		goto exit;
 	}
@@ -146,6 +178,10 @@ int loadSet(PASS_INFO_LIST* passInfoList, char* filename)
 	if(!inFile.is_open())
 	{
 		result = -1;
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << "loadSet: File is not opened " << filename << endl;
+		}
 		goto exit;
 	}
 	// Determine file size
@@ -161,11 +197,19 @@ int loadSet(PASS_INFO_LIST* passInfoList, char* filename)
 	if ((cipherTextBuf == NULL) || (plainTextBuf == NULL)) {
 		result = -1;
 		inFile.close();
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << "<== loadSet(" << filename << ")" << endl;
+		}
 		goto exit;
 	}
 
 	inFile.read(cipherTextBuf, cipherTextLen);
 	inFile.close();
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "<== loadSet(" << filename << ")" << endl;
+	}
 
 	if(decrypt(cipherTextBuf, cipherTextLen, plainTextBuf, plainTextLen, &resultTextLen) != 0)
 	{
@@ -208,6 +252,9 @@ int loadSet(PASS_INFO_LIST* passInfoList, char* filename)
 	delete plainTextStream;
 
 exit:
+	if(outLog.is_open()) {
+		outLog.close();
+	}
 	free(cipherTextBuf);
 	free(plainTextBuf);
 	return result;
