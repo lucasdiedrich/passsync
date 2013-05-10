@@ -46,19 +46,19 @@
     <?define Property_SysFolder = "SystemFolder" ?>
     <?define Property_PFilesFolder = "ProgramFilesFolder" ?>
     <?define Property_Win64 = "no" ?>
-    <?define Property_Platform = "Intel" ?>
+    <?define Property_Platform = "x86" ?>
 <?endif ?>
 
-<Wix xmlns='http://schemas.microsoft.com/wix/2003/01/wi'>
+<Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Product Name='$(var.BRAND) Directory Password Sync'
     Id='$(var.Property_ProductCode)'
     Language='1033' Codepage='1252' UpgradeCode='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'
     Version='$(var.VERSION)' Manufacturer='$(var.VENDOR)'>
 
-    <Package Id='????????-????-????-????-????????????' Keywords='Installer'
+    <Package Id='*' Keywords='Installer'
       Description="$(var.BRAND) Directory Password Synchronization Installer"
-      Manufacturer='$(var.VENDOR)' Platforms='$(var.Property_Platform)'
-      InstallerVersion='200' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
+      Manufacturer='$(var.VENDOR)' Platform='$(var.Property_Platform)'
+      InstallerVersion='405' Languages='1033' Compressed='yes' SummaryCodepage='1252' />
 
 <!-- this upgrade element is for 1.1.0 and later
      if we are upgrading the same version that is already installed,
@@ -192,114 +192,120 @@
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
       <!-- the VC runtime redist package -->
-      <Merge Id='CRT' Language='0' src='$(var.CRTMSM)' DiskId='1'/>
-      <Merge Id='PolicyCRT' Language='0' src='$(var.POLICYCRTMSM)' DiskId='1'/>
+      <Merge Id='CRT' Language='0' SourceFile='$(var.CRTMSM)' DiskId='1'/>
+      <Merge Id='PolicyCRT' Language='0' SourceFile='$(var.POLICYCRTMSM)' DiskId='1'/>
 
       <Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
         <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D' Win64='$(var.Property_Win64)'>
-          <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' src='passhook.dll' Vital='yes' />
+          <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' Source='passhook.dll' Vital='yes' />
           <RemoveFile Id='PasshookDat' On='uninstall' Name='passhook.dat'/>
           <RemoveFile Id='PasshookLog' On='uninstall' Name='passhook.log'/>
         </Component>
 
         <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5' Win64='$(var.Property_Win64)'>
-          <File Id='NSPR' LongName='libnspr4.dll' Name='libnspr4.dll' DiskId='1' src='libnspr4.dll' Vital='yes' />
+          <File Id='NSPR' Name='libnspr4.dll' DiskId='1' Source='libnspr4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSPRpldsLibrary' Guid='50C89341-754F-4092-8307-129DB119B42E' Win64='$(var.Property_Win64)'>
-          <File Id='NSPRPLDS' LongName='libplds4.dll' Name='libplds4.dll' DiskId='1' src='libplds4.dll' Vital='yes' />
+          <File Id='NSPRPLDS' Name='libplds4.dll' DiskId='1' Source='libplds4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSPRplcLibrary' Guid='1B8B1D78-E2C1-4F3A-A841-C79FFE26E6E0' Win64='$(var.Property_Win64)'>
-          <File Id='NSPRPLC' LongName='libplc4.dll' Name='libplc4.dll' DiskId='1' src='libplc4.dll' Vital='yes' />
+          <File Id='NSPRPLC' Name='libplc4.dll' DiskId='1' Source='libplc4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSLibrary' Guid='5E122346-6B77-456D-BCC5-76D7FA8AF258' Win64='$(var.Property_Win64)'>
-          <File Id='NSS' LongName='nss3.dll' Name='nss3.dll' DiskId='1' src='nss3.dll' Vital='yes' />
+          <File Id='NSS' Name='nss3.dll' DiskId='1' Source='nss3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSsslLibrary' Guid='A39CC896-F455-4701-9BF0-D1E31C116DE2' Win64='$(var.Property_Win64)'>
-          <File Id='NSSSSL' LongName='ssl3.dll' Name='ssl3.dll' DiskId='1' src='ssl3.dll' Vital='yes' />
+          <File Id='NSSSSL' Name='ssl3.dll' DiskId='1' Source='ssl3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSsoftoknLibrary' Guid='9C57A076-D52A-4E74-A46A-DDF916A7D8BD' Win64='$(var.Property_Win64)'>
-          <File Id='NSSSOFTTOKN' LongName='softokn3.dll' Name='softokn3.dll' DiskId='1' src='softokn3.dll' Vital='yes' />
+          <File Id='NSSSOFTTOKN' Name='softokn3.dll' DiskId='1' Source='softokn3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSsmimeLibrary' Guid='E1030203-0A43-4767-BF5F-C7A51C687040' Win64='$(var.Property_Win64)'>
-          <File Id='NSSSMIME' LongName='smime3.dll' Name='smime3.dll' DiskId='1' src='smime3.dll' Vital='yes' />
+          <File Id='NSSSMIME' Name='smime3.dll' DiskId='1' Source='smime3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSfreeblLibrary' Guid='405D9E74-1B7C-41e2-A9CC-DC8F0CEA1565' Win64='$(var.Property_Win64)'>
-          <File Id='NSSFREEBL' LongName='freebl3.dll' Name='freebl3.dll' DiskId='1' src='freebl3.dll' Vital='yes' />
+          <File Id='NSSFREEBL' Name='freebl3.dll' DiskId='1' Source='freebl3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSutilLibrary' Guid='2740AA9B-888A-4967-80A5-9CA222582816' Win64='$(var.Property_Win64)'>
-          <File Id='NSSUTIL' LongName='nssutil3.dll' Name='nssutil3.dll' DiskId='1' src='nssutil3.dll' Vital='yes' />
+          <File Id='NSSUTIL' Name='nssutil3.dll' DiskId='1' Source='nssutil3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSsqliteLibrary' Guid='C2EE5C29-0588-4ec8-B1AB-324FF878DB7D' Win64='$(var.Property_Win64)'>
-          <File Id='NSSSQLITE' LongName='sqlite3.dll' Name='sqlite3.dll' DiskId='1' src='sqlite3.dll' Vital='yes' />
+          <File Id='NSSSQLITE' Name='sqlite3.dll' DiskId='1' Source='sqlite3.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSdbmLibrary' Guid='F4B8B7FA-11A5-43af-B471-0C71AFC2CAB9' Win64='$(var.Property_Win64)'>
-          <File Id='NSSDBM' LongName='nssdbm3.dll' Name='nssdbm3.dll' DiskId='1' src='nssdbm3.dll' Vital='yes' />
+          <File Id='NSSDBM' Name='nssdbm3.dll' DiskId='1' Source='nssdbm3.dll' Vital='yes' />
         </Component>
 
       </Directory>
 
       <Directory Id='$(var.Property_PFilesFolder)' Name='PFiles'>
 
-          <Directory Id='INSTALLDIR' Name='PassSync' LongName='$(var.BRAND) Directory Password Synchronization'>
+          <Directory Id='INSTALLDIR' ShortName='PassSync' Name='$(var.BRAND) Directory Password Synchronization'>
 
             <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471' Win64='$(var.Property_Win64)'>
-              <File Id='PassSyncEXE' Name='PassSync.exe' LongName='passsync.exe' DiskId='1'
-                src='passsync.exe' Vital='yes' />
-	      <ServiceInstall Id='PassSyncEXE' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
-		              Interactive='no' Start='auto' Vital='yes' ErrorControl='ignore'/>
-	      <ServiceControl Id='PassSyncEXE' Name='PassSync' Start='install' Stop='both' Remove='uninstall' Wait='no'/>
+            <File Id='PassSyncEXE' Name='PassSync.exe' DiskId='1' Source='passsync.exe' Vital='yes' 
+                      ReadOnly="no" Compressed="yes" KeyPath="yes" Hidden="no" Checksum="no" />
+            <ServiceInstall Id='PassSyncInstall' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
+                      Interactive='no' Start='auto' Vital='yes' ErrorControl='ignore' />
+            <ServiceControl Id='PassSyncControl' Name='PassSync' Start='install' Stop='uninstall' Remove='uninstall' Wait='no'/>
 
-	      <Registry Id='InstPath' Root='HKLM' Key='Software\PasswordSync' Name='Install Path' Action='write' Type='string' Value='[INSTALLDIR]' />
-	      <Registry Id='HostName' Root='HKLM' Key='Software\PasswordSync' Name='Host Name' Action='write' Type='string' Value='[HOSTNAME]' />
-	      <Registry Id='PortNum' Root='HKLM' Key='Software\PasswordSync' Name='Port Number' Action='write' Type='string' Value='[PORTNUM]' />
-	      <Registry Id='UserName' Root='HKLM' Key='Software\PasswordSync' Name='User Name' Action='write' Type='string' Value='[USER]' />
-	      <Registry Id='Password' Root='HKLM' Key='Software\PasswordSync' Name='Password' Action='write' Type='string' Value='[PASSWORD]' />
-	      <Registry Id='Certtkn' Root='HKLM' Key='Software\PasswordSync' Name='Cert Token' Action='write' Type='string' Value='[CERTTOKEN]' />
-	      <Registry Id='SrchBase' Root='HKLM' Key='Software\PasswordSync' Name='Search Base' Action='write' Type='string' Value='[SRCHBASE]' />
-	      <Registry Id='UserFld' Root='HKLM' Key='Software\PasswordSync' Name='User Name Field' Action='write' Type='string' Value='ntuserdomainid' />
-	      <Registry Id='PassFld' Root='HKLM' Key='Software\PasswordSync' Name='Password Field' Action='write' Type='string' Value='userpassword' />
-	      <Registry Id='LogLevel' Root='HKLM' Key='Software\PasswordSync' Name='Log Level' Action='write' Type='string' Value='0' />
-	      <Registry Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' Name='Notification Packages' Action='append' Type='multiString' Value='passhook'/>
-	      <RemoveFile Id='NSSDBFiles' On='uninstall' Name='*.db'/>
-	      <RemoveFile Id='PassSyncLog' On='uninstall' Name='*.log'/>
+            <RegistryKey Id='PassSyncKey' Root='HKLM' Key='Software\PasswordSync' ForceCreateOnInstall='yes' >
+              <RegistryValue Name='Install Path' Type='string' Value='[INSTALLDIR]' />
+              <RegistryValue Name='Host Name' Type='string' Value='[HOSTNAME]' />
+              <RegistryValue Name='Port Number' Type='string' Value='[PORTNUM]' />
+              <RegistryValue Name='User Name' Type='string' Value='[USER]' />
+              <RegistryValue Name='Password' Type='string' Value='[PASSWORD]' />
+              <RegistryValue Name='Cert Token' Type='string' Value='[CERTTOKEN]' />
+              <RegistryValue Name='Search Base' Type='string' Value='[SRCHBASE]' />
+              <RegistryValue Name='User Name Field' Type='string' Value='ntuserdomainid' />
+              <RegistryValue Name='Password Field' Type='string' Value='userpassword' />
+              <RegistryValue Name='Log Level' Type='string' Value='0' />
+              <RegistryValue Name='Notification Packages' Type='multiString' Value='passhook'/>
+            </RegistryKey>
+            <RegistryKey Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' ForceCreateOnInstall='yes' >
+              <RegistryValue Name='Notification Packages' Type='multiString' Value='passhook'/>
+            </RegistryKey>
+
+            <RemoveFile Id='NSSDBFiles' On='uninstall' Name='*.db'/>
+            <RemoveFile Id='PassSyncLog' On='uninstall' Name='*.log'/>
             </Component>
 
             <Component Id='NSScertutil' Guid='EE2FB62B-E104-4049-8A6D-B96D4524FC29' Win64='$(var.Property_Win64)'>
-              <File Id='NSSCERTUTIL' LongName='certutil.exe' Name='certutil.exe' DiskId='1' src='certutil.exe' Vital='yes' />
+              <File Id='NSSCERTUTIL' Name='certutil.exe' DiskId='1' Source='certutil.exe' Vital='yes' />
             </Component>
 
             <Component Id='NSSpk12util' Guid='13393BA9-550A-4330-85B9-76F14225A6D7' Win64='$(var.Property_Win64)'>
-              <File Id='NSSPK12UTIL' LongName='pk12util.exe' Name='pk12util.exe' DiskId='1' src='pk12util.exe' Vital='yes' />
+              <File Id='NSSPK12UTIL' Name='pk12util.exe' DiskId='1' Source='pk12util.exe' Vital='yes' />
             </Component>
 
             <Component Id='NSSrootcertsLibrary' Guid='783828BA-5B72-4320-92CA-127C42E2179E' Win64='$(var.Property_Win64)'>
-              <File Id='NSSROOTCERTS' LongName='nssckbi.dll' Name='nssckbi.dll' DiskId='1' src='nssckbi.dll' Vital='yes' />
+              <File Id='NSSROOTCERTS' Name='nssckbi.dll' DiskId='1' Source='nssckbi.dll' Vital='yes' />
             </Component>
 
             <Component Id='NSLDAPLibrary' Guid='205B568A-F46D-4e80-AF5D-F5EDFC478046' Win64='$(var.Property_Win64)'>
-              <File Id='NSLDAP' LongName='nsldap32v60.dll' Name='nsldap.dll' DiskId='1' src='nsldap32v60.dll' Vital='yes' />
+              <File Id='NSLDAP' Name='nsldap32v60.dll' DiskId='1' Source='nsldap32v60.dll' Vital='yes' />
             </Component>
 
             <Component Id='NSLDAPSSLLibrary' Guid='EFB4852A-7135-468b-A454-E61864BF2ECA' Win64='$(var.Property_Win64)'>
-              <File Id='NSLDAPSSL' LongName='nsldapssl32v60.dll' Name='nsldapss.dll' DiskId='1' src='nsldapssl32v60.dll' Vital='yes' />
+              <File Id='NSLDAPSSL' Name='nsldapssl32v60.dll' DiskId='1' Source='nsldapssl32v60.dll' Vital='yes' />
             </Component>
 
             <Component Id='NSLDAPPRLibrary' Guid='66390300-D732-4983-B933-A3709F99F6AB' Win64='$(var.Property_Win64)'>
-              <File Id='NSLDAPRP' LongName='nsldappr32v60.dll' Name='nsldappr.dll' DiskId='1' src='nsldappr32v60.dll' Vital='yes' />
+              <File Id='NSLDAPRP' Name='nsldappr32v60.dll' DiskId='1' Source='nsldappr32v60.dll' Vital='yes' />
             </Component>
 
             <Component Id='NSLDIFLibrary' Guid='38004143-EB9B-4dec-851A-2E34E8B3249E' Win64='$(var.Property_Win64)'>
-              <File Id='NSLDIF' LongName='nsldif32v60.dll' Name='nsldif.dll' DiskId='1' src='nsldif32v60.dll' Vital='yes' />
+              <File Id='NSLDIF' Name='nsldif32v60.dll' DiskId='1' Source='nsldif32v60.dll' Vital='yes' />
             </Component>
 
           </Directory>
@@ -748,7 +754,7 @@
         </Control>
         <Control Id="BannerBitmap" Type="Bitmap" X="0" Y="0" Width="370" Height="44" TabSkip="no" Text="[BannerBitmap]" />
         <Control Id="AgreementText" Type="ScrollableText" X="20" Y="60" Width="330" Height="120" Sunken="yes" TabSkip="no">
-          <Text src="Binary/License.rtf" />
+          <Text SourceFile="Binary/License.rtf" />
         </Control>
         <Control Id="Description" Type="Text" X="25" Y="23" Width="280" Height="15" Transparent="yes" NoPrefix="yes">
           <Text>Please read the following license agreement carefully</Text>
@@ -1467,17 +1473,17 @@
       <RemoveExistingProducts After='InstallFinalize' />
     </InstallExecuteSequence>
 
-    <Binary Id="Up" src="Binary\Up.ico" />
-    <Binary Id="New" src="Binary\New.ico" />
-    <Binary Id="custicon" src="Binary\Custom.ico" />
-    <Binary Id="repairic" src="Binary\Repair.ico" />
-    <Binary Id="exclamic" src="Binary\Exclam.ico" />
-    <Binary Id="removico" src="Binary\Remove.ico" />
-    <Binary Id="completi" src="Binary\Complete.ico" />
-    <Binary Id="insticon" src="Binary\Typical.ico" />
-    <Binary Id="info" src="Binary\Info.ico" />
-    <Binary Id="bannrbmp" src="Binary\Banner.bmp" />
-    <Binary Id="dlgbmp" src="Binary\Dialog.bmp" />
-    <Icon Id="PassSync.exe" src="passsync.exe" />
+    <Binary Id="Up" SourceFile="Binary\Up.ico" />
+    <Binary Id="New" SourceFile="Binary\New.ico" />
+    <Binary Id="custicon" SourceFile="Binary\Custom.ico" />
+    <Binary Id="repairic" SourceFile="Binary\Repair.ico" />
+    <Binary Id="exclamic" SourceFile="Binary\Exclam.ico" />
+    <Binary Id="removico" SourceFile="Binary\Remove.ico" />
+    <Binary Id="completi" SourceFile="Binary\Complete.ico" />
+    <Binary Id="insticon" SourceFile="Binary\Typical.ico" />
+    <Binary Id="info" SourceFile="Binary\Info.ico" />
+    <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
+    <Binary Id="dlgbmp" SourceFile="Binary\Dialog.bmp" />
+    <Icon Id="PassSync.exe" SourceFile="passsync.exe" />
   </Product>
 </Wix>

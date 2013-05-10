@@ -61,14 +61,14 @@ rem the command shell to set up the MS VC/SDK build environment
 rem use goto to support if/elseif/elseif/else style statements
 if [%APPVER%] == [6.0] goto WINVER60
 rem else
-goto WINVER52
+goto WINVER61
 
 :WINVER60
 set WINVER=6.0
 goto SETPLATFORM
 
-:WINVER52
-set WINVER=5.2
+:WINVER61
+set WINVER=6.1
 goto SETPLATFORM
 
 :SETPLATFORM
@@ -138,8 +138,22 @@ if not defined CRTMSM (
    )
 )
 
+if not defined POLICYCRTMSM (
+   if not ["%MSSDK%"] == [] (
+      set POLICYCRTMSM="%MSSDK%"\Redist\VC\policy.x.xx.microsoft.vcxx.crt.%MSMPLAT%_msm.msm
+   )
+)
+
 if not defined CRTMSM (
    echo ERROR: could not find the merge modules for the Visual C++
+   echo runtime side by side assemblies - they should be provided
+   echo with the Visual Studio C++ and/or the Windows SDK
+   echo cannot continue
+   exit 1
+)
+
+if not defined POLICYCRTMSM (
+   echo ERROR 2: could not find the merge modules for the Visual C++
    echo runtime side by side assemblies - they should be provided
    echo with the Visual Studio C++ and/or the Windows SDK
    echo cannot continue
@@ -177,10 +191,8 @@ rem   ------ Convert DISTDIR to absolute ------
 call :relative %DISTDIR% DISTDIR
 mkdir "%DISTDIR%"
 
-set WIXVER=2.0.5805.0
-set WIXDIR=..\wix
-rem   ------ Convert WIXDIR to absolute ------
-call :relative %WIXDIR% WIXDIR
+set WIXVER=3.7
+set WIXDIR=C:\Program Files (x86)\WiX Toolset v%WIXVER%\bin
 
 set WXSDIR=%CD%\wix
 

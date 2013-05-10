@@ -44,9 +44,12 @@
 
 /*----------------------------------------------------------------------------*/
 
+/*
+ As of Visual Studio 2010, crtassem.h no longer exists.
 #ifndef _CRT_ASSEMBLY_VERSION
 #include <crtassem.h>
 #endif 
+ */
 
 /*----------------------------------------------------------------------------*/
 
@@ -173,7 +176,7 @@ PassSyncService::PassSyncService(const TCHAR *serviceName) : CNTService(serviceN
 	ExpandEnvironmentStrings("%SystemRoot%", sysPath, SYNCSERV_BUF_SIZE);
 	_snprintf(certPath, SYNCSERV_BUF_SIZE, "%s", installPath);
 	_snprintf(logPath, SYNCSERV_BUF_SIZE, "%spasssync.log", installPath);
-	_snprintf(dataFilename, SYNCSERV_BUF_SIZE, "%s\\system32\\passhook.dat", sysPath);
+	_snprintf(dataFilename, SYNCSERV_BUF_SIZE, "%s\\System32\\passhook.dat", sysPath);
 
 	outLog.open(logPath, ios::out | ios::app);
 
@@ -228,6 +231,10 @@ void PassSyncService::Run()
 	{
 		timeStamp(&outLog);
 		outLog << "PassSync service running" << endl;
+		if(logLevel > 0) {
+			timeStamp(&outLog);
+			outLog << "dataFilename is " << dataFilename << endl;
+		}
 	}
 
 	isRunning = true;

@@ -72,8 +72,8 @@ ASCIIToUnicode( const char *buf, wchar_t *uni, int inUnilen )
      /* XXX This function should be named UTF8ToUnicode */
      /* XXX unilen should be size_t, not int */
 {
-	auto size_t unilen = (size_t)inUnilen; /* to get rid of warnings for now */
-    auto size_t i;
+    size_t unilen = (size_t)inUnilen; /* to get rid of warnings for now */
+    size_t i;
     if (unilen > 0 && buf && uni) {
 		for (i = 0; i < unilen; ++i) {
 			register unsigned long c = utf8getcc( &buf );
