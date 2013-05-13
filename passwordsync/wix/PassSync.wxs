@@ -270,7 +270,6 @@
               <RegistryValue Name='User Name Field' Type='string' Value='ntuserdomainid' />
               <RegistryValue Name='Password Field' Type='string' Value='userpassword' />
               <RegistryValue Name='Log Level' Type='string' Value='0' />
-              <RegistryValue Name='Notification Packages' Type='multiString' Value='passhook'/>
             </RegistryKey>
             <RegistryKey Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' ForceCreateOnInstall='yes' >
               <RegistryValue Name='Notification Packages' Type='multiString' Value='passhook'/>
