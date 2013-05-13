@@ -414,6 +414,7 @@ int PassSyncService::SyncPasswords()
 		{
 			while((dn = GetDN()) != NULL)
 			{
+				int bindRC = LDAP_SUCCESS;
 				if(FutureOccurrence(currentPassInfo))
 				{
 					if(logLevel > 0)
@@ -427,13 +428,39 @@ int PassSyncService::SyncPasswords()
 					timeStamp(&outLog);
 					outLog << "Multiple results not allowed: " << currentPassInfo->username << endl;
 				}
-				else if(CanBind(dn, currentPassInfo->password))
+				else if(LDAP_SUCCESS == (bindRC = CanBind(dn, currentPassInfo->password)))
 				{
-					if(logLevel > 0)
-					{
+					if(logLevel > 0) {
 						timeStamp(&outLog);
 						outLog << "Password match, no modify performed: " << currentPassInfo->username << endl;
 					}
+				}
+				else if(LDAP_INVALID_CREDENTIALS != bindRC)
+				{
+					// password check failure.
+					/*
+					 * CanBind is used to determine modify password is needed in the
+					 * first round as well as to check the modification was successful
+					 * in the second round.  The following modification invokes the
+					 * server side's WinSync plugin to send the modify back, and this
+					 * code is invoked as the second round.  If the return code from
+					 * CanBind is not LDAP_INVALID_CREDENTIALS (e.g., LDAP_UNWILLING_
+					 * TO_PERFORM for the inactivated account), the second round Can-
+					 * Bind wound not return LDAP_SUCCESS even if the password is
+					 * correctly updated.  That's said, if CanBind returns any error
+					 * other than LDAP_INVALID_CREDENTIALS, we should defer the pass-
+					 * word update.
+					 */
+					timeStamp(&outLog);
+					outLog << "Checking password failed for remote entry: " << dn << endl;
+					// defer this change for later
+					timeStamp(&outLog);
+					outLog << "Deferring password change for " << currentPassInfo->username << endl;
+					currentPassInfo++;
+					// free dn
+					ldap_memfree(dn);
+					dn = NULL;
+					continue;
 				}
 				else if(ModifyPassword(dn, currentPassInfo->password) != 0)
 				{
@@ -505,7 +532,7 @@ exit:
 // ****************************************************************
 int PassSyncService::Connect(LDAP** connection, char* dn, char* auth)
 {
-	int result = 0;
+	int result = LDAP_SUCCESS;
 
 	*connection = ldapssl_init(ldapHostName, atoi(ldapHostPort), 1);
 
@@ -530,7 +557,7 @@ int PassSyncService::Connect(LDAP** connection, char* dn, char* auth)
 			outLog << "\t" << lastLdapError << ": " << ldap_err2string(lastLdapError) << endl;
 		}
 
-		result = -1;
+		result = lastLdapError;
 		goto exit;
 	}
 
@@ -696,19 +723,12 @@ bool PassSyncService::MultipleResults()
 // ****************************************************************
 // PassSyncService::CanBind
 // ****************************************************************
-bool PassSyncService::CanBind(char* dn, char* password)
+int PassSyncService::CanBind(char* dn, char* password)
 {
-	bool result;
+	int result = LDAP_SUCCESS;
 	LDAP* tempConnection = NULL;
 
-	if(Connect(&tempConnection, dn, password) == 0)
-	{
-		result = true;
-	}
-	else
-	{
-		result = false;
-	}
+	result = Connect(&tempConnection, dn, password);
 	
 	if(tempConnection != NULL)
 	{

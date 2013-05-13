@@ -79,20 +79,20 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 
 	// Fill in the password change struct
 	if (newPassInfo->username && newPassInfo->password) {
-                _snprintf(newPassInfo->username, (UserName->Length / 2), "%S", UserName->Buffer);
+		_snprintf(newPassInfo->username, (UserName->Length / 2), "%S", UserName->Buffer);
 		newPassInfo->username[UserName->Length / 2] = '\0';
 		if (Password != NULL) {
-                	_snprintf(newPassInfo->password, (Password->Length / 2), "%S", Password->Buffer);
+			_snprintf(newPassInfo->password, (Password->Length / 2), "%S", Password->Buffer);
 			newPassInfo->password[Password->Length / 2] = '\0';
 		} else {
 			newPassInfo->password[0] = '\0';
 		}
 
 		// Backoff
-                newPassInfo->backoffCount = 0;
+		newPassInfo->backoffCount = 0;
 
-                // Load time
-                time(&(newPassInfo->atTime));
+		// Load time
+		time(&(newPassInfo->atTime));
 	} else {
 		// Memory error.  Free everything we allocated.
 		free(newPassInfo->username);
@@ -114,12 +114,12 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 
 		// If we got the mutex, log the error, otherwise it's not safe to log
 		if (waitRes == WAIT_OBJECT_0) {
-                	outLog.open("passhook.log", ios::out | ios::app);
+			outLog.open("passhook.log", ios::out | ios::app);
 
-		        if(outLog.is_open()) {
-       		         	timeStamp(&outLog);
-		                outLog << "Failed to start thread.  Aborting change for " << newPassInfo->username << endl;
-       		 	}
+			if(outLog.is_open()) {
+				timeStamp(&outLog);
+				outLog << "Failed to start thread.  Aborting change for " << newPassInfo->username << endl;
+			}
 
 			outLog.close();
 
@@ -147,16 +147,13 @@ BOOL NTAPI InitializeChangeNotify()
 
 	// check if logging is enabled
 	RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSync", &regKey);
-        buffSize = PASSHAND_BUF_SIZE;
-        if(RegQueryValueEx(regKey, "Log Level", NULL, &type, (unsigned char*)regBuff, &buffSize) == ERROR_SUCCESS)
-        {
-                logLevel = (unsigned long)atoi(regBuff);
-        }
-        else
-        {
-                logLevel = 0;
-        }
-        RegCloseKey(regKey);
+	buffSize = PASSHAND_BUF_SIZE;
+	if(RegQueryValueEx(regKey, "Log Level", NULL, &type, (unsigned char*)regBuff, &buffSize) == ERROR_SUCCESS) {
+		logLevel = (unsigned long)atoi(regBuff);
+	} else {
+		logLevel = 0;
+	}
+	RegCloseKey(regKey);
 
 	// Create mutex for passhook data file and log file access
 	passhookMutexHandle = CreateMutex(NULL, FALSE, PASSHOOK_MUTEX_NAME);
@@ -179,92 +176,80 @@ BOOL NTAPI InitializeChangeNotify()
 DWORD WINAPI SavePasshookChange( LPVOID passinfo ) 
 {
 	PASS_INFO *newPassInfo = NULL;
-        PASS_INFO_LIST passInfoList;
-        HANDLE passhookEventHandle = OpenEvent(EVENT_MODIFY_STATE, FALSE, PASSHAND_EVENT_NAME);
+	PASS_INFO_LIST passInfoList;
+	HANDLE passhookEventHandle = OpenEvent(EVENT_MODIFY_STATE, FALSE, PASSHAND_EVENT_NAME);
 	fstream outLog;
 
 	if ((newPassInfo = (PASS_INFO *)passinfo) == NULL) {
 		goto exit;
 	}
 
-        // Acquire the mutex for passhook.dat.  This mutex also guarantees
+	// Acquire the mutex for passhook.dat.  This mutex also guarantees
 	// that we can write to outLog safely.
-        WaitForSingleObject(passhookMutexHandle, INFINITE);
+	WaitForSingleObject(passhookMutexHandle, INFINITE);
 
 	// Open the log file if logging is enabled
-        if(logLevel > 0)
-        {
-                outLog.open("passhook.log", ios::out | ios::app);
-        }
+	if(logLevel > 0) {
+		outLog.open("passhook.log", ios::out | ios::app);
+	}
 
-	if(outLog.is_open())
-        {
-                timeStamp(&outLog);
-                outLog << "user " <<  newPassInfo->username << " password changed" << endl;
-                //outLog << "user " <<  newPassInfo->username << " password changed to " <<  newPassInfo->passname << endl;
-        }
+	if(outLog.is_open()) {
+		timeStamp(&outLog);
+		outLog << "user " <<  newPassInfo->username << " password changed" << endl;
+		//outLog << "user " <<  newPassInfo->username << " password changed to " <<  newPassInfo->passname << endl;
+	}
 
-        // loadSet allocates memory for the usernames and password.  We need to be
-        // sure to free it by calling clearSet.
-        if(loadSet(&passInfoList, "passhook.dat") == 0)
-        {
-                if(outLog.is_open())
-                {
-                        timeStamp(&outLog);
-                        outLog << passInfoList.size() << " entries loaded from file" << endl;
-                }
-        }
-        else
-        {
-                if(outLog.is_open())
-                {
-                        timeStamp(&outLog);
-                        outLog << "failed to load entries from file" << endl;
-                }
-        }
+	// loadSet allocates memory for the usernames and password.  We need to be
+	// sure to free it by calling clearSet.
+	if(loadSet(&passInfoList, "passhook.dat") == 0) {
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << passInfoList.size() << " entries loaded from file" << endl;
+		}
+	} else {
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << "failed to load entries from file" << endl;
+		}
+	}
 
 	// Add the new change to the list
-        passInfoList.push_back(*newPassInfo);
+	passInfoList.push_back(*newPassInfo);
 
-        // Save the list to disk
-        if(saveSet(&passInfoList, "passhook.dat") == 0)
-        {
-                if(outLog.is_open())
-                {
-                        timeStamp(&outLog);
-                        outLog << passInfoList.size() << " entries saved to file" << endl;
-                }
-        }
-        else
-        {
+	// Save the list to disk
+	if(saveSet(&passInfoList, "passhook.dat") == 0) {
+		if(outLog.is_open()) {
+			timeStamp(&outLog);
+			outLog << passInfoList.size() << " entries saved to file" << endl;
+		}
+	} else {
 		// We always want to log this error condition
-                if(!outLog.is_open())
-                {
+		if(!outLog.is_open()) {
 			// We need to open the log since debug logging is turned off
 			outLog.open("passhook.log", ios::out | ios::app);
 		}
 
-                timeStamp(&outLog);
-                outLog << "failed to save entries to file" << endl;
-        }
+		timeStamp(&outLog);
+		outLog << "failed to save entries to file" << endl;
+	}
 
 	// Close the log file before we release the mutex.
 	outLog.close();
 
-        // Release the mutex for passhook.dat
-        ReleaseMutex(passhookMutexHandle);
+	// Release the mutex for passhook.dat
+	ReleaseMutex(passhookMutexHandle);
 
-        // We need to call clearSet so memory gets free'd
-        clearSet(&passInfoList);
+	// We need to call clearSet so memory gets free'd
+	clearSet(&passInfoList);
 
 exit:
 	// Free the passed in struct from the heap
 	free(newPassInfo);
 
-        if (passhookEventHandle != NULL) {
-                SetEvent(passhookEventHandle);
+	if (passhookEventHandle != NULL) {
+		SetEvent(passhookEventHandle);
 		CloseHandle(passhookEventHandle);
-        }
+	}
 
 	return 0;
 }

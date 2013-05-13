@@ -73,7 +73,7 @@ private:
 
 	bool FutureOccurrence(PASS_INFO_LIST_ITERATOR &startingPassInfo);
 	bool MultipleResults();
-	bool CanBind(char* dn, char* password);
+	int CanBind(char* dn, char* password);
 
 	unsigned long BackoffTime(int backoff);
 	void UpdateBackoff();
