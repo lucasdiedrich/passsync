@@ -56,8 +56,9 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 {
 	PASS_INFO *newPassInfo = NULL;
 	HANDLE passhookThreadHandle;
-	fstream outLog;
+	wfstream outLog;
 	DWORD waitRes;
+	int len;
 
 	// If UserName is NULL, just return STATUS_SUCCESS
 	if (UserName == NULL) {
@@ -65,41 +66,121 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 	}
 
 	// This memory will be freed in SavePasshookChange
-	if ( newPassInfo = (PASS_INFO *) malloc(sizeof(PASS_INFO)) ) {
-		// These get freed in SavePasshookChange by calling clearSet
-		newPassInfo->username = (char*)malloc((UserName->Length / 2) + 1);
-		if (Password != NULL) {
-			newPassInfo->password = (char*)malloc((Password->Length / 2) + 1);
-		} else {
-			newPassInfo->password = (char*)malloc(1);
-		}
-	} else {
+	newPassInfo = (PASS_INFO *)calloc(1, sizeof(PASS_INFO));
+	if (NULL == newPassInfo) {
 		goto exit;
 	}
 
+	outLog.open("passhook.log", ios::out | ios::app);
 	// Fill in the password change struct
-	if (newPassInfo->username && newPassInfo->password) {
-		_snprintf(newPassInfo->username, (UserName->Length / 2), "%S", UserName->Buffer);
-		newPassInfo->username[UserName->Length / 2] = '\0';
-		if (Password != NULL) {
-			_snprintf(newPassInfo->password, (Password->Length / 2), "%S", Password->Buffer);
-			newPassInfo->password[Password->Length / 2] = '\0';
-		} else {
-			newPassInfo->password[0] = '\0';
+	/* Note: LPSTR == "char *" */
+	len = WideCharToMultiByte(CP_UTF8, 0 /* no flags */,
+	                          // Length is in bytes; assume UCS2
+	                          UserName->Buffer, UserName->Length/2,
+	                          newPassInfo->username, 0,
+	                          NULL, NULL);
+	if (len > 0) {
+		newPassInfo->username = (char*)malloc(len + 1);
+		if (NULL == newPassInfo->username) {
+			if(outLog.is_open()) {
+				wtimeStamp(&outLog);
+				outLog << "Failed to alloc mem for user " << UserName->Buffer
+				       << "; error (" << GetLastError() << ")" << endl;
+			}
+			free(newPassInfo);
+			goto exit;
 		}
-
-		// Backoff
-		newPassInfo->backoffCount = 0;
-
-		// Load time
-		time(&(newPassInfo->atTime));
 	} else {
-		// Memory error.  Free everything we allocated.
-		free(newPassInfo->username);
-		free(newPassInfo->password);
+		newPassInfo->username = NULL;
+		if(outLog.is_open()) {
+			wtimeStamp(&outLog);
+			outLog << "Failed to calc mem for user " << UserName->Buffer
+			       << "; error (" << GetLastError() << ")" << endl;
+		}
 		free(newPassInfo);
 		goto exit;
 	}
+	len = WideCharToMultiByte(CP_UTF8, 0 /* no flags */,
+	                          // Length is in bytes; assume UCS2
+	                          UserName->Buffer, UserName->Length/2,
+	                          newPassInfo->username, len+1,
+	                          NULL, NULL);
+	if (0 == len) {
+		if(outLog.is_open()) {
+			wtimeStamp(&outLog);
+			outLog << "Failed to convert user " << UserName->Buffer
+			       << "; error (" << GetLastError() << ")" << endl;
+		}
+		free(newPassInfo);
+		goto exit;
+	}
+	newPassInfo->username[len] = '\0';
+	if (Password != NULL) {
+		len = WideCharToMultiByte(CP_UTF8, 0 /* no flags */,
+	                                  // Length is in bytes; assume UCS2
+	                                  Password->Buffer, Password->Length/2,
+		                          newPassInfo->password, 0,
+		                          NULL, NULL);
+		if (len > 0) {
+			newPassInfo->password = (char*)malloc(len + 1);
+			if (NULL == newPassInfo->password) {
+				if(outLog.is_open()) {
+					wtimeStamp(&outLog);
+					outLog << "Failed to alloc mem for password " << Password->Buffer
+					       << "; error (" << GetLastError() << ")" << endl;
+				}
+				free(newPassInfo->username);
+				free(newPassInfo);
+				goto exit;
+			}
+		} else {
+			newPassInfo->password = NULL;
+			if(outLog.is_open()) {
+				wtimeStamp(&outLog);
+				outLog << "Failed to calc mem for password " << Password->Buffer
+				       << "; error (" << GetLastError() << ")" << endl;
+			}
+			free(newPassInfo->username);
+			free(newPassInfo);
+			goto exit;
+		}
+		len = WideCharToMultiByte(CP_UTF8, 0 /* no flags */,
+	                                  // Length is in bytes; assume UCS2
+	                                  Password->Buffer, Password->Length/2,
+		                          newPassInfo->password, len+1,
+		                          NULL, NULL);
+		if (0 == len) {
+			if(outLog.is_open()) {
+				wtimeStamp(&outLog);
+				outLog << "Failed to convert password " << Password->Buffer
+				       << "; error (" << GetLastError() << ")" << endl;
+			}
+			free(newPassInfo->username);
+			free(newPassInfo->password);
+			free(newPassInfo);
+			goto exit;
+		}
+		newPassInfo->password[len] = '\0';
+	} else {
+		newPassInfo->password = (char*)malloc(1);
+		if (NULL == newPassInfo->password) {
+			if(outLog.is_open()) {
+				wtimeStamp(&outLog);
+				outLog << "Failed to allocate for empty password." 
+				       << "; error (" << GetLastError() << ")" << endl;
+			}
+			free(newPassInfo->username);
+			free(newPassInfo);
+			goto exit;
+		}
+		newPassInfo->password[0] = '\0';
+	}
+
+	// Backoff
+	newPassInfo->backoffCount = 0;
+
+	// Load time
+	time(&(newPassInfo->atTime));
 
 	// Fire off a thread to do the real work
 	passhookThreadHandle = CreateThread(NULL, 0, SavePasshookChange, newPassInfo, 0, NULL); 
@@ -114,14 +195,14 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 
 		// If we got the mutex, log the error, otherwise it's not safe to log
 		if (waitRes == WAIT_OBJECT_0) {
-			outLog.open("passhook.log", ios::out | ios::app);
-
-			if(outLog.is_open()) {
-				timeStamp(&outLog);
-				outLog << "Failed to start thread.  Aborting change for " << newPassInfo->username << endl;
+			if(!outLog.is_open()) {
+				outLog.open("passhook.log", ios::out | ios::app);
 			}
 
-			outLog.close();
+			if(outLog.is_open()) {
+				wtimeStamp(&outLog);
+				outLog << "Failed to start thread.  Aborting change for " << newPassInfo->username << endl;
+			}
 
 			// Release mutex
 			ReleaseMutex(passhookMutexHandle);
@@ -129,6 +210,9 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 	}
 
 exit:
+	if(outLog.is_open()) {
+		outLog.close();
+	}
 	return STATUS_SUCCESS;
 }
 
@@ -234,7 +318,9 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 	}
 
 	// Close the log file before we release the mutex.
-	outLog.close();
+	if(outLog.is_open()) {
+		outLog.close();
+	}
 
 	// Release the mutex for passhook.dat
 	ReleaseMutex(passhookMutexHandle);

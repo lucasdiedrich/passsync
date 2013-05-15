@@ -56,6 +56,19 @@ void timeStamp(fstream* outFile)
 	}
 }
 
+void wtimeStamp(wfstream* outFile)
+{
+	if(outFile->is_open())
+	{
+		char dateBuf[32];
+		char timeBuf[32];
+
+		_strdate(dateBuf);
+		_strtime(timeBuf);
+		*outFile << dateBuf << " " << timeBuf << ": ";
+	}
+}
+
 int saveSet(PASS_INFO_LIST* passInfoList, char* filename)
 {
 	int result = 0;

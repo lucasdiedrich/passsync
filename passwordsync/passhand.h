@@ -71,6 +71,7 @@ typedef list<PASS_INFO> PASS_INFO_LIST;
 typedef list<PASS_INFO>::iterator PASS_INFO_LIST_ITERATOR;
 
 void timeStamp(fstream* outFile);
+void wtimeStamp(wfstream* outFile);
 
 int encrypt(char* plainTextBuf, int plainTextLen, char* cipherTextBuf, int cipherTextLen, int* resultTextLen);
 int decrypt(char* cipherTextBuf, int cipherTextLen, char* plainTextBuf, int plainTextLen, int* resultTextLen);

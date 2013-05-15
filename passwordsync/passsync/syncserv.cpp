@@ -430,14 +430,15 @@ int PassSyncService::SyncPasswords()
 					timeStamp(&outLog);
 					outLog << "Multiple results not allowed: " << currentPassInfo->username << endl;
 				}
-				else if(LDAP_SUCCESS == (bindRC = CanBind(dn, currentPassInfo->password)))
+				else if (LDAP_SUCCESS == (bindRC = CanBind(dn, currentPassInfo->password)))
 				{
 					if(logLevel > 0) {
 						timeStamp(&outLog);
 						outLog << "Password match, no modify performed: " << currentPassInfo->username << endl;
 					}
 				}
-				else if(LDAP_INVALID_CREDENTIALS != bindRC)
+				else if ((LDAP_INVALID_CREDENTIALS != bindRC) &&
+				         (LDAP_INAPPROPRIATE_AUTH != bindRC))
 				{
 					// password check failure.
 					/*
@@ -446,12 +447,16 @@ int PassSyncService::SyncPasswords()
 					 * in the second round.  The following modification invokes the
 					 * server side's WinSync plugin to send the modify back, and this
 					 * code is invoked as the second round.  If the return code from
-					 * CanBind is not LDAP_INVALID_CREDENTIALS (e.g., LDAP_UNWILLING_
-					 * TO_PERFORM for the inactivated account), the second round Can-
-					 * Bind wound not return LDAP_SUCCESS even if the password is
-					 * correctly updated.  That's said, if CanBind returns any error
-					 * other than LDAP_INVALID_CREDENTIALS, we should defer the pass-
-					 * word update.
+					 * CanBind is not LDAP_INVALID_CREDENTIALS or LDAP_INAPPROPRIATE_
+					 * AUTH (e.g., LDAP_UNWILLING_TO_PERFORM for the inactivated 
+					 * account), the second round CanBind wound not return LDAP_
+					 * SUCCESS even if the password is correctly updated.  That's 
+					 * said, if CanBind returns any error other than LDAP_INVALID_
+					 * CREDENTIALS, we should defer the password update.
+					 *
+					 * Note: LDAP_INAPPROPRIATE_AUTH is returned when the entry has
+					 * no userpassword and trying to auth with LDAP_AUTH_SIMPLE. 
+					 * This case, the password is to be sync'ed, 
 					 */
 					timeStamp(&outLog);
 					outLog << "Checking password failed for remote entry: " << dn << endl;
