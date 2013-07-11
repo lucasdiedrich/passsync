@@ -36,7 +36,6 @@
  All rights reserved.
  END COPYRIGHT BLOCK -->
 
-<?define Property_ProductCode = "ffac8b42-c505-4046-9028-f44f6353668a" ?>
 <?if $(var.USE64)=1 ?>
     <?define Property_SysFolder = "System64Folder" ?>
     <?define Property_PFilesFolder = "ProgramFiles64Folder" ?>
@@ -51,7 +50,7 @@
 
 <Wix xmlns='http://schemas.microsoft.com/wix/2006/wi'>
   <Product Name='$(var.BRAND) Directory Password Sync'
-    Id='$(var.Property_ProductCode)'
+    Id='*'
     Language='1033' Codepage='1252' UpgradeCode='698B3A4E-17D4-449f-9ACB-DE8BF43394C1'
     Version='$(var.VERSION)' Manufacturer='$(var.VENDOR)'>
 
