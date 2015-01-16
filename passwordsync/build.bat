@@ -50,7 +50,7 @@ set DOWNLOAD=%BITSADMIN% /wrap /transfer passsyncbuild /download /priority norma
 @rem HACK HACK HACK
 @rem unzip.vbs just stopped working - gives File or Folder exists
 @rem which is clearly not true
-@ren so, fall back on MozillaTools
+@rem so, fall back on MozillaTools
 set UZCMD=C:\mozilla-build\info-zip\unzip.exe -q
 @rem set UZCMD=cscript //nologo "%CD%\unzip.vbs"
 @rem set DOWNLOAD=wget --no-directories
@@ -170,7 +170,7 @@ if [%BRANDNOSPACE%] == [] (
    set BRANDNOSPACE=389
 )
 if [%VERSION%] == [] (
-   set VERSION=1.1.5
+   set VERSION=1.1.6
 )
 
 rem ======== Set Various Build Directories ========
@@ -273,7 +273,7 @@ pushd "%CD%"
 
 rem ======== Build ========
 rem   ------ Set Build Paths ------
-set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\public\ldap;%LIBROOT%\nspr\include;%LIBROOT%\nss\include
+set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\include\ldap;%LIBROOT%\nspr\include\nspr;%LIBROOT%\nss\include
 set LIB=%LIB%;%LIBROOT%\ldapsdk\lib;%LIBROOT%\nspr\lib;%LIBROOT%\nss\lib
 
 rem   ------ PassSync ------

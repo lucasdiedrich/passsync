@@ -85,7 +85,7 @@ OPT_CPPFLAGS=/MT /O2 /D "NDEBUG" $(COMMON_CPPFLAGS)
 DBG_CPPFLAGS=/MTd /Gm /Zi /D "_DEBUG" /RTC1 $(COMMON_CPPFLAGS)
 
 SYS_LIBS=kernel32.lib user32.lib gdi32.lib winspool.lib comdlg32.lib advapi32.lib shell32.lib ole32.lib oleaut32.lib uuid.lib odbc32.lib odbccp32.lib
-MOZ_LIBS=nss3.lib nssutil3.lib libplc4.lib libnspr4.lib
+MOZ_LIBS=nss3.lib nssutil3.lib plc4.lib nspr4.lib
 LIBS=$(SYS_LIBS) $(MOZ_LIBS)
 
 DEF_FILE= \

@@ -202,15 +202,15 @@
         </Component>
 
         <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5' Win64='$(var.Property_Win64)'>
-          <File Id='NSPR' Name='libnspr4.dll' DiskId='1' Source='libnspr4.dll' Vital='yes' />
+          <File Id='NSPR' Name='nspr4.dll' DiskId='1' Source='nspr4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSPRpldsLibrary' Guid='50C89341-754F-4092-8307-129DB119B42E' Win64='$(var.Property_Win64)'>
-          <File Id='NSPRPLDS' Name='libplds4.dll' DiskId='1' Source='libplds4.dll' Vital='yes' />
+          <File Id='NSPRPLDS' Name='plds4.dll' DiskId='1' Source='plds4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSPRplcLibrary' Guid='1B8B1D78-E2C1-4F3A-A841-C79FFE26E6E0' Win64='$(var.Property_Win64)'>
-          <File Id='NSPRPLC' Name='libplc4.dll' DiskId='1' Source='libplc4.dll' Vital='yes' />
+          <File Id='NSPRPLC' Name='plc4.dll' DiskId='1' Source='plc4.dll' Vital='yes' />
         </Component>
 
         <Component Id='NSSLibrary' Guid='5E122346-6B77-456D-BCC5-76D7FA8AF258' Win64='$(var.Property_Win64)'>
