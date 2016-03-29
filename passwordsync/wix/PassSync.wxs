@@ -271,7 +271,9 @@
               <RegistryValue Name='Log Level' Type='string' Value='0' />
             </RegistryKey>
             <RegistryKey Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' ForceCreateOnInstall='yes' >
-              <RegistryValue Name='Notification Packages' Type='multiString' Value='passhook'/>
+              <RegistryValue Name='Notification Packages' Type='multiString' Action='append'>
+                <MultiStringValue>passhook</MultiStringValue>
+              </RegistryValue>
             </RegistryKey>
 
             <RemoveFile Id='NSSDBFiles' On='uninstall' Name='*.db'/>
