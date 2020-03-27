@@ -44,8 +44,8 @@ LIGHT=$(WIXDIR)\light
 ALL : PassSync.msi
 
 LAYOUT :
-	copy /Y "$(OBJDEST)\passsync\passsync.exe" "$(PKGDIR)"
-	copy /Y "$(OBJDEST)\passhook\passhook.dll" "$(PKGDIR)"
+	copy /Y "$(OBJDEST)\passsync\passsyncunl.exe" "$(PKGDIR)"
+	copy /Y "$(OBJDEST)\passhook\passhookunl.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\ldapsdk\lib\*.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nspr\lib\*.dll" "$(PKGDIR)"
 	copy /Y "$(LIBROOT)\nss\lib\*.dll" "$(PKGDIR)"

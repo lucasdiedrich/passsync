@@ -36,7 +36,7 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 #
-# nmake Makefile for passhook.dll
+# nmake Makefile for passhookunl.dll
 #
 !IF "$(CFG)" == ""
 CFG=passhook - Win32 Debug
@@ -118,13 +118,13 @@ BSC_SBRS= \
 LINK=link.exe
 MTL=midl.exe
 
-ALL : "$(OUTDIR)\passhook.dll"
+ALL : "$(OUTDIR)\passhookunl.dll"
 
 CLEAN :
 	-@erase "$(INTDIR)\passhand.obj"
 	-@erase "$(INTDIR)\passhook.obj"
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(OUTDIR)\passhook.dll"
+	-@erase "$(OUTDIR)\passhookunl.dll"
 	-@erase "$(OUTDIR)\passhook.exp"
 	-@erase "$(OUTDIR)\passhook.lib"
 
@@ -166,7 +166,7 @@ CLEAN :
    $(CPPFLAGS) $< 
 <<
 
-"$(OUTDIR)\passhook.dll" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
+"$(OUTDIR)\passhookunl.dll" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
     $(LINK) @<<
   $(LDFLAGS) $(LIBS) $(OBJS)
 <<

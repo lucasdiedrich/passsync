@@ -71,7 +71,7 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 		goto exit;
 	}
 
-	outLog.open("passhook.log", ios::out | ios::app);
+	outLog.open("passhookunl.log", ios::out | ios::app);
 	// Fill in the password change struct
 	/* Note: LPSTR == "char *" */
 	len = WideCharToMultiByte(CP_UTF8, 0 /* no flags */,
@@ -196,7 +196,7 @@ NTSTATUS NTAPI PasswordChangeNotify(PUNICODE_STRING UserName, ULONG RelativeId, 
 		// If we got the mutex, log the error, otherwise it's not safe to log
 		if (waitRes == WAIT_OBJECT_0) {
 			if(!outLog.is_open()) {
-				outLog.open("passhook.log", ios::out | ios::app);
+				outLog.open("passhookunl.log", ios::out | ios::app);
 			}
 
 			if(outLog.is_open()) {
@@ -230,7 +230,7 @@ BOOL NTAPI InitializeChangeNotify()
 	fstream outLog;
 
 	// check if logging is enabled
-	RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSync", &regKey);
+	RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSyncUNL", &regKey);
 	buffSize = PASSHAND_BUF_SIZE;
 	if(RegQueryValueEx(regKey, "Log Level", NULL, &type, (unsigned char*)regBuff, &buffSize) == ERROR_SUCCESS) {
 		logLevel = (unsigned long)atoi(regBuff);
@@ -244,7 +244,7 @@ BOOL NTAPI InitializeChangeNotify()
 
 	if (passhookMutexHandle == NULL) {
 		// Log an error.
-		outLog.open("passhook.log", ios::out | ios::app);
+		outLog.open("passhookunl.log", ios::out | ios::app);
 		timeStamp(&outLog);
 		outLog << "Failed to create passhook mutex.  Passhook DLL will not be loaded." << endl;
 		outLog.close();
@@ -268,13 +268,13 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 		goto exit;
 	}
 
-	// Acquire the mutex for passhook.dat.  This mutex also guarantees
+	// Acquire the mutex for passhookunl.dat.  This mutex also guarantees
 	// that we can write to outLog safely.
 	WaitForSingleObject(passhookMutexHandle, INFINITE);
 
 	// Open the log file if logging is enabled
 	if(logLevel > 0) {
-		outLog.open("passhook.log", ios::out | ios::app);
+		outLog.open("passhookunl.log", ios::out | ios::app);
 	}
 
 	if(outLog.is_open()) {
@@ -285,7 +285,7 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 
 	// loadSet allocates memory for the usernames and password.  We need to be
 	// sure to free it by calling clearSet.
-	if(loadSet(&passInfoList, "passhook.dat") == 0) {
+	if(loadSet(&passInfoList, "passhookunl.dat") == 0) {
 		if(outLog.is_open()) {
 			timeStamp(&outLog);
 			outLog << passInfoList.size() << " entries loaded from file" << endl;
@@ -301,7 +301,7 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 	passInfoList.push_back(*newPassInfo);
 
 	// Save the list to disk
-	if(saveSet(&passInfoList, "passhook.dat") == 0) {
+	if(saveSet(&passInfoList, "passhookunl.dat") == 0) {
 		if(outLog.is_open()) {
 			timeStamp(&outLog);
 			outLog << passInfoList.size() << " entries saved to file" << endl;
@@ -310,7 +310,7 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 		// We always want to log this error condition
 		if(!outLog.is_open()) {
 			// We need to open the log since debug logging is turned off
-			outLog.open("passhook.log", ios::out | ios::app);
+			outLog.open("passhookunl.log", ios::out | ios::app);
 		}
 
 		timeStamp(&outLog);
@@ -322,7 +322,7 @@ DWORD WINAPI SavePasshookChange( LPVOID passinfo )
 		outLog.close();
 	}
 
-	// Release the mutex for passhook.dat
+	// Release the mutex for passhookunl.dat
 	ReleaseMutex(passhookMutexHandle);
 
 	// We need to call clearSet so memory gets free'd

@@ -104,7 +104,7 @@ char* passwdcb(PK11SlotInfo* info, PRBool retry, void* arg)
 
 	if (!retry)
 	{
-		RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSync", &regKey);
+		RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSyncUNL", &regKey);
 		RegQueryValueEx(regKey, "Install Path", NULL, &type, NULL, &resultLen);
 		result = (char*)malloc(resultLen);
 		RegQueryValueEx(regKey, "Cert Token", NULL, &type, (unsigned char*)result, &resultLen);
@@ -133,7 +133,7 @@ PassSyncService::PassSyncService(const TCHAR *serviceName) : CNTService(serviceN
 	lastLdapError = LDAP_SUCCESS;
 	certdbh = NULL;
 
-	RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSync", &regKey);
+	RegOpenKey(HKEY_LOCAL_MACHINE, "SOFTWARE\\PasswordSyncUNL", &regKey);
 
 	size = SYNCSERV_BUF_SIZE;
 	if(RegQueryValueEx(regKey, "Log Level", NULL, &type, (unsigned char*)tempRegBuff, &size) == ERROR_SUCCESS)
@@ -175,15 +175,15 @@ PassSyncService::PassSyncService(const TCHAR *serviceName) : CNTService(serviceN
 
 	ExpandEnvironmentStrings("%SystemRoot%", sysPath, SYNCSERV_BUF_SIZE);
 	_snprintf(certPath, SYNCSERV_BUF_SIZE, "%s", installPath);
-	_snprintf(logPath, SYNCSERV_BUF_SIZE, "%spasssync.log", installPath);
-	_snprintf(dataFilename, SYNCSERV_BUF_SIZE, "%s\\System32\\passhook.dat", sysPath);
+	_snprintf(logPath, SYNCSERV_BUF_SIZE, "%spasssyncunl.log", installPath);
+	_snprintf(dataFilename, SYNCSERV_BUF_SIZE, "%s\\System32\\passhookunl.dat", sysPath);
 
 	outLog.open(logPath, ios::out | ios::app);
 
 	if(outLog.is_open())
 	{
 		timeStamp(&outLog);
-		outLog << "PassSync service initialized" << endl;
+		outLog << "PassSync Unila service initialized" << endl;
 	}
 
 	PK11_SetPasswordFunc(passwdcb);
@@ -199,7 +199,7 @@ PassSyncService::~PassSyncService()
 	if(outLog.is_open())
 	{
 		timeStamp(&outLog);
-		outLog << "PassSync service stopped" << endl;
+		outLog << "PassSync Unila service stopped" << endl;
 	}
 	outLog.close();
 }
@@ -230,7 +230,7 @@ void PassSyncService::Run()
 	if(outLog.is_open())
 	{
 		timeStamp(&outLog);
-		outLog << "PassSync service running" << endl;
+		outLog << "PassSync Unila service running" << endl;
 		if(logLevel > 0) {
 			timeStamp(&outLog);
 			outLog << "dataFilename is " << dataFilename << endl;
@@ -291,7 +291,7 @@ void PassSyncService::Run()
 	if(passInfoList.size() > 0)
 	{
 		int result = 0;
-		// Get mutex for passhook.dat
+		// Get mutex for passhookunl.dat
 		WaitForSingleObject(passhookMutexHandle, INFINITE);
 
 		// Need to loadSet here so we don't overwrite entries that passhook recently added
@@ -318,7 +318,7 @@ void PassSyncService::Run()
 			outLog << "Failed to load entries from file" << endl;
 		}
 
-		// Release mutex for passhook.dat
+		// Release mutex for passhookunl.dat
 		ReleaseMutex(passhookMutexHandle);
 	}
 
@@ -340,7 +340,7 @@ int PassSyncService::SyncPasswords()
 	char* dn = NULL;
 	int tempSize = passInfoList.size();
 
-	// Get mutex for passhook.dat
+	// Get mutex for passhookunl.dat
 	WaitForSingleObject(passhookMutexHandle, INFINITE);
 
 	if((result = loadSet(&passInfoList, dataFilename)) == 0)
@@ -379,7 +379,7 @@ int PassSyncService::SyncPasswords()
 		outLog << "Failed to load entries from file" << endl;
 	}
 
-	// Release mutex for passhook.dat
+	// Release mutex for passhookunl.dat
 	ReleaseMutex(passhookMutexHandle);
 
 	if(passInfoList.size() > 0)

@@ -327,7 +327,7 @@ main( int argc, char *argv[] )
 #endif
 
 	// Global single instance
-	PassSyncService theSynch("Password Synchronization Service");
+	PassSyncService theSynch("Password Synchronization Service Unila");
 
 	// Process special install/uninstall switches; this does install/uninstall
 	// It returns non-zero to actually start the service

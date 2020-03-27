@@ -75,32 +75,32 @@
     <Media Id='1' Cabinet='Sample.cab' EmbedCab='yes' DiskPrompt="CD-ROM #1" />
     <Property Id='DiskPrompt' Value="Password Sync Installation [1]" />
     <Property Id="HOSTNAME">
-      <RegistrySearch Id="HostName" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="HostName" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Host Name" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="PORTNUM">
-      <RegistrySearch Id="PortNum" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="PortNum" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Port Number" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="USER">
-      <RegistrySearch Id="UserName" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="UserName" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="User Name" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="PASSWORD">
-      <RegistrySearch Id="Password" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="Password" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Password" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="CERTTOKEN">
-      <RegistrySearch Id="Certtkn" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="Certtkn" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Cert Token" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
     <Property Id="SRCHBASE">
-      <RegistrySearch Id="SrchBase" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="SrchBase" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Search Base" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
 
     <Property Id="OLDINSTALLDIR">
-      <RegistrySearch Id="OldInstPath" Root="HKLM" Key="Software\PasswordSync"
+      <RegistrySearch Id="OldInstPath" Root="HKLM" Key="Software\PasswordSyncUNL"
                       Name="Install Path" Type="raw" Win64='$(var.Property_Win64)' />
     </Property>
 
@@ -190,15 +190,15 @@
     </CustomAction>
 
     <Directory Id='TARGETDIR' Name='SourceDir'>
-      <!-- the VC runtime redist package -->
-      <Merge Id='CRT' Language='0' SourceFile='$(var.CRTMSM)' DiskId='1'/>
-      <Merge Id='PolicyCRT' Language='0' SourceFile='$(var.POLICYCRTMSM)' DiskId='1'/>
-
-      <Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
+      <!-- the VC runtime redist package 
+		<Merge Id='PolicyCRT' Language='0' SourceFile='$(var.POLICYCRTMSM)' DiskId='1'/>-->
+	    <Merge Id='CRT' Language='0' SourceFile='$(var.CRTMSM)' DiskId='1'/>
+		
+		<Directory Id='$(var.Property_SysFolder)' Name='SysDir'>
         <Component Id='HookLibrary' Guid='93790ACE-F522-413C-AEE3-DF05D99BAA6D' Win64='$(var.Property_Win64)'>
-          <File Id='PasshookDLL' Name='passhook.dll' DiskId='1' Source='passhook.dll' Vital='yes' />
-          <RemoveFile Id='PasshookDat' On='uninstall' Name='passhook.dat'/>
-          <RemoveFile Id='PasshookLog' On='uninstall' Name='passhook.log'/>
+          <File Id='PasshookDLL' Name='passhookunl.dll' DiskId='1' Source='passhookunl.dll' Vital='yes' />
+          <RemoveFile Id='PasshookDat' On='uninstall' Name='passhookunl.dat'/>
+          <RemoveFile Id='PasshookLog' On='uninstall' Name='passhookunl.log'/>
         </Component>
 
         <Component Id='NSPRLibrary' Guid='7DFF5449-F38C-4C3B-9876-E32A123F1EA5' Win64='$(var.Property_Win64)'>
@@ -252,13 +252,13 @@
           <Directory Id='INSTALLDIR' ShortName='PassSync' Name='$(var.BRAND) Directory Password Synchronization'>
 
             <Component Id='MainExecutable' Guid='DCEECAA4-83F1-4F22-985B-FDB3C8ABD471' Win64='$(var.Property_Win64)'>
-            <File Id='PassSyncEXE' Name='PassSync.exe' DiskId='1' Source='passsync.exe' Vital='yes' 
+            <File Id='PassSyncEXE' Name='PassSyncUnl.exe' DiskId='1' Source='passsyncunl.exe' Vital='yes' 
                       ReadOnly="no" Compressed="yes" KeyPath="yes" Hidden="no" Checksum="no" />
-            <ServiceInstall Id='PassSyncInstall' Name='PassSync' DisplayName='Password Synchronization' Type='ownProcess' 
+            <ServiceInstall Id='PassSyncInstall' Name='PassSyncUNL' DisplayName='Password Synchronization Unila' Type='ownProcess' 
                       Interactive='no' Start='auto' Vital='yes' ErrorControl='ignore' />
-            <ServiceControl Id='PassSyncControl' Name='PassSync' Start='install' Stop='uninstall' Remove='uninstall' Wait='no'/>
+            <ServiceControl Id='PassSyncControl' Name='PassSyncUNL' Start='install' Stop='uninstall' Remove='uninstall' Wait='no'/>
 
-            <RegistryKey Id='PassSyncKey' Root='HKLM' Key='Software\PasswordSync' ForceCreateOnInstall='yes' >
+            <RegistryKey Id='PassSyncKey' Root='HKLM' Key='Software\PasswordSyncUNL' ForceCreateOnInstall='yes' >
               <RegistryValue Name='Install Path' Type='string' Value='[INSTALLDIR]' />
               <RegistryValue Name='Host Name' Type='string' Value='[HOSTNAME]' />
               <RegistryValue Name='Port Number' Type='string' Value='[PORTNUM]' />
@@ -272,7 +272,7 @@
             </RegistryKey>
             <RegistryKey Id='NotPkgs' Root='HKLM' Key='SYSTEM\ControlSet001\Control\Lsa' ForceCreateOnInstall='yes' >
               <RegistryValue Name='Notification Packages' Type='multiString' Action='append'>
-                <MultiStringValue>passhook</MultiStringValue>
+                <MultiStringValue>passhookunl</MultiStringValue>
               </RegistryValue>
             </RegistryKey>
 
@@ -313,7 +313,7 @@
       <Directory Id="DesktopFolder" Name="Desktop" />
     </Directory>
 
-    <Feature Id='Complete' Title='Password Synchronization Service' Description='The complete package.'
+    <Feature Id='Complete' Title='Password Synchronization Service Unila' Description='The complete package.'
       TypicalDefault='install' Display='expand' Level='1'
       ConfigurableDirectory='INSTALLDIR'>
       <Feature Id='MainProgram' Title='Program' Description='The main executable.'
@@ -341,7 +341,7 @@
       </Feature>
       <Feature Id='CRT_WinSXS' Title='CRT WinSXS' AllowAdvertise="no" Display="hidden" Level='1'>
           <MergeRef Id='CRT' />
-          <MergeRef Id='PolicyCRT' />
+          <!-- <MergeRef Id='PolicyCRT' /> -->
       </Feature>
     </Feature>
 
@@ -1484,6 +1484,6 @@
     <Binary Id="info" SourceFile="Binary\Info.ico" />
     <Binary Id="bannrbmp" SourceFile="Binary\Banner.bmp" />
     <Binary Id="dlgbmp" SourceFile="Binary\Dialog.bmp" />
-    <Icon Id="PassSync.exe" SourceFile="passsync.exe" />
+    <Icon Id="PassSyncUnl.exe" SourceFile="passsyncunl.exe" />
   </Product>
 </Wix>

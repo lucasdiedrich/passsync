@@ -51,8 +51,8 @@
 #include "pk11func.h"
 #include "prerror.h"
 
-#define PASSHAND_EVENT_NAME "passhand_event"
-#define PASSHOOK_MUTEX_NAME "passhook_mutex"
+#define PASSHAND_EVENT_NAME "passhandunl_event"
+#define PASSHOOK_MUTEX_NAME "passhookunl_mutex"
 
 #define PASSHOOK_TIMEOUT 30000
 #define PASSHAND_BUF_SIZE 256

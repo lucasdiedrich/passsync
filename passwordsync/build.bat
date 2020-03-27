@@ -51,7 +51,7 @@ set DOWNLOAD=%BITSADMIN% /wrap /transfer passsyncbuild /download /priority norma
 @rem unzip.vbs just stopped working - gives File or Folder exists
 @rem which is clearly not true
 @rem so, fall back on MozillaTools
-set UZCMD=C:\mozilla-build\info-zip\unzip.exe -q
+set UZCMD=C:\mozilla-build\bin\unzip.exe -q
 @rem set UZCMD=cscript //nologo "%CD%\unzip.vbs"
 @rem set DOWNLOAD=wget --no-directories
 @rem set UZCMD=unzip -q
@@ -76,6 +76,7 @@ if [%CPU%] == [AMD64] (
   set FLAG64=_64
   set USE64=1
   set PLATFORM=x86_64
+  set PLATFORM2=64bit
   set LDAPDATE=20091019.1
   set MSMPLAT=x64
 if [%BUILD_DEBUG%] == [optimize] (
@@ -96,6 +97,7 @@ if [%BUILD_DEBUG%] == [optimize] (
 )
 ) else (
   set PLATFORM=i386
+  set PLATFORM2=32bit
   set LDAPDATE=20091017.1
   set MSMPLAT=x86
 if [%BUILD_DEBUG%] == [optimize] (
@@ -191,7 +193,7 @@ rem   ------ Convert DISTDIR to absolute ------
 call :relative %DISTDIR% DISTDIR
 mkdir "%DISTDIR%"
 
-set WIXVER=3.7
+set WIXVER=3.11
 set WIXDIR=C:\Program Files (x86)\WiX Toolset v%WIXVER%\bin
 
 set WXSDIR=%CD%\wix
@@ -199,13 +201,14 @@ set WXSDIR=%CD%\wix
 rem ======== Fetch Components ========
 if [%INTERNAL_BUILD%] == [1] (
     set COMPONENT_URL=%SBC%
-    set COMPONENT_URL2=%SBV%
 ) else (
-    set COMPONENT_URL=http://port389.org/built/components
+    set COMPONENT_URL=https://fedorapeople.org/groups/389ds/binaries/passsync-components
 )
 
 rem   ------ NSPR ------
-set NSPR_LOCATION=%COMPONENT_URL%/nspr/v4.8.4
+set NSPR=nspr-win-4.10.8-%PLATFORM2%-%FLV%
+set NSPR_FILE=%NSPR%.zip
+set NSPR_LOCATION=%COMPONENT_URL%/%NSPR_FILE%
 if NOT EXIST "%LIBROOT%\nspr" (
     echo on
     echo mkdir "%LIBROOT%\nspr"
@@ -215,10 +218,20 @@ if NOT EXIST "%LIBROOT%\nspr" (
     echo pushd "%LIBROOT%\nspr"
     pushd "%LIBROOT%\nspr"
     echo %NSPR_LOCATION%/%FLAVOR% > version.txt
-    echo %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
-    %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nspr\mdbinary.jar"
-    echo %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
-    %DOWNLOAD% %NSPR_LOCATION%/%FLAVOR%/mdheader.jar "%LIBROOT%\nspr\mdheader.jar"
+
+    echo "---------------------------------------"
+    echo %DOWNLOAD% %NSPR_LOCATION% "%LIBROOT%\nspr\%NSPR_FILE%"
+    %DOWNLOAD% %NSPR_LOCATION% "%LIBROOT%\nspr\%NSPR_FILE%"
+    
+    echo %UZCMD% "%LIBROOT%\nspr\%NSPR_FILE%"
+    %UZCMD% "%LIBROOT%\nspr\%NSPR_FILE%"
+
+    move "%LIBROOT%\nspr\%NSPR%\mdbinary.jar" .
+    move "%LIBROOT%\nspr\%NSPR%\mdheader.jar" .
+    del "%LIBROOT%\nspr\%NSPR_FILE%"
+    rmdir /s /q "%LIBROOT%\nspr\%NSPR%"
+    echo "---------------------------------------"
+
     echo %UZCMD% mdbinary.jar
     %UZCMD% mdbinary.jar
     echo cd include
@@ -231,28 +244,52 @@ if NOT EXIST "%LIBROOT%\nspr" (
 )
 
 rem   ------ NSS ------
-set NSS_LOCATION=%COMPONENT_URL%/nss/NSS_3_12_6_RTM
+set NSS_LOCATION=%COMPONENT_URL%/nss-win-3.19.1-%PLATFORM2%-%FLV%.zip
 if NOT EXIST "%LIBROOT%\nss" (
     mkdir "%LIBROOT%\nss"
     mkdir "%LIBROOT%\nss\include"
     pushd "%LIBROOT%\nss"
     echo %NSS_LOCATION%/%FLAVOR% > version.txt
-    %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/mdbinary.jar "%LIBROOT%\nss\mdbinary.jar"
-    %DOWNLOAD% %NSS_LOCATION%/%FLAVOR%/include/xpheader.jar "%LIBROOT%\nss\xpheader.jar"
-    %UZCMD% mdbinary.jar
+
+    echo "---------------------------------------"
+    echo %DOWNLOAD% %NSS_LOCATION% "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%.zip"
+    %DOWNLOAD% %NSS_LOCATION% "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%.zip"
+    
+    echo %UZCMD% "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%.zip"
+    %UZCMD% "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%.zip"
+
+    move "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%\include\xpheader.jar" .
+    move "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%\lib" .
+    move "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%\bin" .
+
+    del "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%.zip"
+    rmdir /s /q "%LIBROOT%\nss\nss-win-3.19.1-%PLATFORM2%-%FLV%"
+    echo "---------------------------------------"
+
     cd include
     %UZCMD% ..\xpheader.jar
     popd
 )
 
 rem   ------ LDAPSDK ------
-set LDAPSDK_LOCATION=%COMPONENT_URL2%/ldapcsdk/v6.0.6/%LDAPDATE%
+set LDAPSDK=ldap-c-sdk-win-6.0.7-%PLATFORM2%-%FLV%
+set LDAPSDK_FILE=%LDAPSDK%.zip
+set LDAPSDK_LOCATION=%COMPONENT_URL%/%LDAPSDK_FILE%
 if NOT EXIST "%LIBROOT%\ldapsdk" (
     mkdir "%LIBROOT%\ldapsdk"
     pushd "%LIBROOT%\ldapsdk"
     echo %LDAPSDK_LOCATION%/%FLAVOR% > version.txt
-    %DOWNLOAD% %LDAPSDK_LOCATION%/%FLAVOR%/mozldap_%FLV%.zip "%LIBROOT%\ldapsdk\mozldap_%FLV%.zip"
-    %UZCMD% mozldap_%FLV%.zip
+
+    echo %DOWNLOAD% %LDAPSDK_LOCATION% "%LIBROOT%\ldapsdk\%LDAPSDK_FILE%"
+    %DOWNLOAD% %LDAPSDK_LOCATION% "%LIBROOT%\ldapsdk\%LDAPSDK_FILE%"
+
+    %UZCMD% "%LIBROOT%\ldapsdk\%LDAPSDK_FILE%"
+
+    move "%LIBROOT%\ldapsdk\%LDAPSDK%\include" .
+    move "%LIBROOT%\ldapsdk\%LDAPSDK%\lib" .
+    move "%LIBROOT%\ldapsdk\%LDAPSDK%\bin" .
+    move "%LIBROOT%\ldapsdk\%LDAPSDK%\etc" .
+
     popd
 )
 
@@ -273,7 +310,7 @@ pushd "%CD%"
 
 rem ======== Build ========
 rem   ------ Set Build Paths ------
-set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\include\ldap;%LIBROOT%\nspr\include\nspr;%LIBROOT%\nss\include
+set INCLUDE=%INCLUDE%;%LIBROOT%\ldapsdk\include\ldap;%LIBROOT%\nspr\include;%LIBROOT%\nss\include
 set LIB=%LIB%;%LIBROOT%\ldapsdk\lib;%LIBROOT%\nspr\lib;%LIBROOT%\nss\lib
 
 rem   ------ PassSync ------

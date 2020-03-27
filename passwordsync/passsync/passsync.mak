@@ -36,7 +36,7 @@
 # All rights reserved.
 # END COPYRIGHT BLOCK
 #
-# nmake Makefile for passsync.exe
+# nmake Makefile for passsyncunl.exe
 #
 !IF "$(CFG)" == ""
 CFG=passsync - Win32 Debug
@@ -119,12 +119,12 @@ BSC_SBRS= \
 	
 LINK=link.exe
 
-ALL : "$(OUTDIR)\passsync.exe"
+ALL : "$(OUTDIR)\passsyncunl.exe"
 
 CLEAN :
 	-@erase $(OBJS)
 	-@erase "$(INTDIR)\vc60.idb"
-	-@erase "$(OUTDIR)\passsync.exe"
+	-@erase "$(OUTDIR)\passsyncunl.exe"
 	-@erase "$(INTDIR)\vc60.pdb"
 	-@erase "$(OUTDIR)\passsync.ilk"
 	-@erase "$(OUTDIR)\passsync.pdb"
@@ -167,7 +167,7 @@ CLEAN :
    $(CPPFLAGS) $< 
 <<
 
-"$(OUTDIR)\passsync.exe" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
+"$(OUTDIR)\passsyncunl.exe" : "$(OUTDIR)" $(DEF_FILE) $(OBJS)
 	$(LINK) @<<
 $(LDFLAGS) $(LIBS) $(OBJS)
 <<
